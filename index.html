@@ -119,6 +119,32 @@ body:before{width:280px;height:280px;left:-100px;top:8%;background:#c4b5fd}body:
 .admin-user-card .mini{word-break:break-all}.admin-search{margin-bottom:10px;border:2px solid #ede9fe!important;background:#fafaff!important}.admin-order{border-left:4px solid #7c3aed!important}.admin-order.status-paid{border-left-color:#16a34a!important}.admin-order.status-delivered{border-left-color:#059669!important}.admin-order.status-cancelled{border-left-color:#dc2626!important}
 @media(max-width:560px){.admin-tabs{grid-template-columns:repeat(2,1fr)}}
 
+/* ===== V32 DESIGN SYSTEM ===== */
+:root{--bg:#f5f3ff;--surface:#fff;--surface-2:#f8fafc;--text:#0f172a;--muted:#64748b;--primary:#4f46e5;--secondary:#9333ea;--accent:#ec4899;--success:#16a34a;--warning:#f97316;--danger:#dc2626;--border:rgba(99,102,241,.14);--shadow:0 10px 30px rgba(79,70,229,.10);--shadow-hover:0 16px 40px rgba(79,70,229,.20);--glow:0 0 0 1px rgba(147,51,234,.18),0 8px 28px rgba(147,51,234,.16);--ease:cubic-bezier(.2,.8,.2,1);
+--z-nav:100;--z-modal:200;--z-overlay:350;--z-toast:500}
+.app{isolation:isolate}
+.nav{z-index:var(--z-nav)}.modal-back{z-index:var(--z-modal);overscroll-behavior:contain;touch-action:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);animation:v32Fade .18s ease both;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.modal{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;max-height:min(92vh,92dvh);padding-bottom:calc(20px + env(safe-area-inset-bottom));animation:v32Sheet .28s var(--ease) both}
+.deck-learning-overlay{z-index:var(--z-overlay);overscroll-behavior:contain}.toast{z-index:var(--z-toast);top:calc(15px + env(safe-area-inset-top))}
+@keyframes v32Fade{from{opacity:0}to{opacity:1}}@keyframes v32Sheet{from{opacity:0;transform:translateY(40px) scale(.98)}to{opacity:1;transform:none}}
+body{background:radial-gradient(1200px 500px at 10% -10%,rgba(147,51,234,.10),transparent 60%),radial-gradient(900px 500px at 100% 0,rgba(236,72,153,.08),transparent 60%),var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+.card{background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+@media(hover:hover){.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}}
+.page>.card,.page>button.card{animation:schutzFadeUp .4s var(--ease) both}.page>*:nth-child(2){animation-delay:.04s}.page>*:nth-child(3){animation-delay:.08s}.page>*:nth-child(4){animation-delay:.12s}.page>*:nth-child(n+5){animation-delay:.16s}
+.btn,button.card,.nav button,.review-scope-item{min-height:44px;transition:transform .15s var(--ease),box-shadow .2s ease,filter .2s ease;touch-action:manipulation}
+.btn:active,button.card:active,.nav button:active,.review-scope-item:active{transform:scale(.96)}
+@media(hover:hover){.btn.primary:hover{box-shadow:var(--glow);filter:brightness(1.05)}}
+.btn:disabled{opacity:.6}.close{min-width:44px;min-height:44px}
+input,textarea,select{font-size:16px;border-color:var(--border);transition:border-color .2s,box-shadow .2s}input:focus,textarea:focus,select:focus{outline:none;border-color:var(--secondary);box-shadow:0 0 0 3px rgba(147,51,234,.18)}
+.nav button.active .ico{animation:v32Pop .35s var(--ease)}@keyframes v32Pop{50%{transform:translateY(-4px) scale(1.18)}}
+.stat b{display:inline-block;animation:v32Flame 2.4s ease-in-out infinite;transform-origin:50% 90%}@keyframes v32Flame{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.06) rotate(-1.5deg)}}
+.badge,.pill{animation:v32Pop .4s var(--ease) both}.progress>div{transition:width .5s var(--ease)}
+.list-item{animation:schutzFadeUp .35s var(--ease) both}
+.burst{position:fixed;left:50%;top:40%;z-index:var(--z-toast);pointer-events:none}.burst span{position:absolute;font-size:22px;opacity:0;animation:v32Burst .9s var(--ease) forwards}
+@keyframes v32Burst{0%{opacity:1;transform:translate(0,0) scale(.4)}70%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.1)}}
+@media(max-width:520px){.modal{border-radius:22px 22px 0 0}}
+@media(max-height:480px) and (orientation:landscape){.modal{max-height:96dvh}.nav{height:calc(64px + env(safe-area-inset-bottom))}.nav .ico{font-size:20px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.burst{display:none}}
 </style>
 </head>
 <body data-version="V19">
@@ -139,6 +165,29 @@ let authLoading=true;
 let authMessage="";
 let resetMode=false;
 let shopCart=[];
+/* ===== Modales : scroll lock iOS-safe, arrière-plan inerte, focus ===== */
+let scrollLocked=false,lockedY=0,modalWasOpen=false;
+function syncModalLock(){
+  const open=!!modal||!!document.querySelector('.deck-learning-overlay'),b=document.body,app=document.querySelector('.app');
+  if(app)[...app.children].forEach(el=>{const front=el.matches('.modal-back,.toast,.deck-learning-overlay');if(open&&!front)el.setAttribute('inert','');else el.removeAttribute('inert')});
+  if(open&&!scrollLocked){lockedY=window.scrollY||0;b.style.cssText+=';position:fixed;top:-'+lockedY+'px;left:0;right:0;width:100%';scrollLocked=true}
+  else if(!open&&scrollLocked){b.style.position=b.style.top=b.style.left=b.style.right=b.style.width='';scrollLocked=false;window.scrollTo(0,lockedY)}
+  if(open&&!modalWasOpen){const m=document.querySelector('.modal');if(m){m.setAttribute('role','dialog');m.setAttribute('aria-modal','true');const f=m.querySelector('input,textarea,select,.close,button');if(f)f.focus({preventScroll:true})}}
+  modalWasOpen=open;
+}
+document.addEventListener('keydown',e=>{
+  if(!modal)return;
+  if(e.key==='Escape'){closeModal();return}
+  if(e.key==='Tab'){const m=document.querySelector('.modal');if(!m)return;const f=[...m.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select,textarea')];if(!f.length)return;const first=f[0],last=f[f.length-1];if(!m.contains(document.activeElement)){e.preventDefault();first.focus()}else if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}
+});
+/* Célébration légère (transform/opacity uniquement, 12 particules, auto-nettoyée) */
+function burst(emoji){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const w=document.createElement('div');w.className='burst';w.setAttribute('aria-hidden','true');
+  for(let i=0;i<12;i++){const e=document.createElement('span'),a=i/12*6.283,d=70+Math.random()*60;e.textContent=emoji;e.style.setProperty('--dx',Math.cos(a)*d+'px');e.style.setProperty('--dy',Math.sin(a)*d-30+'px');w.appendChild(e)}
+  document.body.appendChild(w);setTimeout(()=>w.remove(),1000);
+}
+
 let orderSubmitting=false;
 let qrPendingUrl="";
 let deckSwipeStart=null;
@@ -565,9 +614,13 @@ window.addEventListener("pagehide",()=>{
   localStorage.setItem(KEY,JSON.stringify(state));
 });
 
+const KEEP_IDS=['myOrders','publicReviews'];let keptBoxes={};
+function snapshotBoxes(){KEEP_IDS.forEach(id=>{const el=document.getElementById(id);if(el&&el.innerHTML&&!/^\s*(<div class="sub">)?Chargement/.test(el.innerHTML))keptBoxes[id]=el.innerHTML})}
+function restoreBoxes(){if(tab!=='shop')return;KEEP_IDS.forEach(id=>{const el=document.getElementById(id);if(el&&keptBoxes[id])el.innerHTML=keptBoxes[id]})}
 function render(){
  const r=document.getElementById("root");
- const savedScroll=window.scrollY||0;
+ snapshotBoxes();if(!authUser)keptBoxes={};
+ const savedScroll=scrollLocked?lockedY:(window.scrollY||0);
  const animateTab=tabChanged;
  tabChanged=false;
  if(authLoading){r.innerHTML=`<div class="welcome"><div class="welcome-inner"><img src="assets/schutz-app-logo.jpeg" alt="Schutz-App" onerror="this.onerror=null;this.src=window.SCHUTZ_LOGO_FALLBACK" style="width:110px;height:110px;object-fit:cover;border-radius:28px;box-shadow:0 18px 40px rgba(0,0,0,.22)"><h2>Chargement de Schutz-App…</h2></div></div>`;return}
@@ -595,6 +648,7 @@ function render(){
  if(window.MathJax) MathJax.typesetPromise().catch(()=>{});
  setTimeout(renderPendingQRCode,0);
  if(tab==="review") renderReview();
+ restoreBoxes();syncModalLock();
 }
 function toast(){return `<div class="toast">${esc(toastMsg)}</div>`}
 
@@ -802,7 +856,7 @@ async function loadOrderReview(id,status){
   }catch(e){box.innerHTML='<div class="sub">Avis indisponible pour le moment.</div>'}
 }
 function openOrderReview(id){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>⭐ Noter ma commande</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Ton avis sera visible par les autres utilisateurs.</p><select id="reviewRating"><option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="3">⭐⭐⭐</option><option value="2">⭐⭐</option><option value="1">⭐</option></select><textarea id="reviewComment" placeholder="Ton avis (facultatif)" style="margin-top:8px;min-height:100px"></textarea><button class="btn primary full" style="margin-top:8px" onclick="submitOrderReview('${id}')">Publier l'avis</button></div></div>`;render()}
-async function submitOrderReview(id){const rating=Number(document.getElementById('reviewRating')?.value||5),comment=document.getElementById('reviewComment')?.value.trim()||'';const r=await supabaseClient.rpc('submit_my_order_review',{p_order_id:id,p_rating:rating,p_comment:comment});if(r.error){showToast('Avis : '+r.error.message);return}closeModal();showToast('Avis publié ⭐');loadMyOrders();loadPublicReviews()}
+async function submitOrderReview(id){const rating=Number(document.getElementById('reviewRating')?.value||5),comment=document.getElementById('reviewComment')?.value.trim()||'';const r=await supabaseClient.rpc('submit_my_order_review',{p_order_id:id,p_rating:rating,p_comment:comment});if(r.error){showToast('Avis : '+r.error.message);return}closeModal();showToast('Avis publié ⭐');burst('⭐');loadMyOrders(true);loadPublicReviews()}
 async function loadPublicReviews(){
   const seq=++reviewsLoadSeq;
   const getBox=()=>document.getElementById('publicReviews');
@@ -815,12 +869,12 @@ async function loadPublicReviews(){
     ]);
     if(seq!==reviewsLoadSeq||tab!=='shop')return;
     box=getBox();if(!box)return;
-    if(r.error){box.innerHTML='<div class="auth-error">Avis indisponibles : '+esc(r.error.message||'Erreur inconnue')+'</div>';return}
+    if(r.error){if(!/list-item/.test(box.innerHTML))box.innerHTML='<div class="auth-error">Avis indisponibles : '+esc(r.error.message||'Erreur inconnue')+'</div>';return}
     const rows=Array.isArray(r.data)?r.data:[];
     box.innerHTML=rows.map(x=>`<div class="list-item"><div class="main"><b>${'⭐'.repeat(Number(x.rating)||0)} · ${esc(x.pseudo||'Client')}</b>${x.comment?`<div class="sub">${esc(x.comment)}</div>`:''}<div class="mini">${x.created_at?new Date(x.created_at).toLocaleDateString('fr-FR'):'—'}</div></div></div>`).join('')||'<div class="empty">Aucun avis pour le moment.</div>';
   }catch(e){
     if(seq!==reviewsLoadSeq||tab!=='shop')return;
-    box=getBox();if(box)box.innerHTML='<div class="auth-error">Avis indisponibles : '+esc(e?.message||String(e))+'</div>';
+    box=getBox();if(box&&!/list-item/.test(box.innerHTML))box.innerHTML='<div class="auth-error">Avis indisponibles : '+esc(e?.message||String(e))+'</div>';
   }
 }
 function openPayPalSetup(){window.location.href=PAYPAL_LINK}
@@ -828,6 +882,20 @@ function openPayPalSetup(){window.location.href=PAYPAL_LINK}
 function addToCart(id){const p=SHOP_PRODUCTS.find(x=>x.id===id);if(!p)return;const i=shopCart.find(x=>x.id===id);if(i)i.qty++;else shopCart.push({...p,qty:1});render()}
 function changeCart(id,delta){const i=shopCart.find(x=>x.id===id);if(!i)return;i.qty+=delta;if(i.qty<=0)shopCart=shopCart.filter(x=>x.id!==id);render()}
 function openOrderForm(){const total=shopCart.reduce((s,i)=>s+i.price*i.qty,0);modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Finaliser la commande 🍵</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">${shopCart.reduce((s,i)=>s+i.qty,0)} article(s) — ${total.toFixed(2)} €</p><input id="orderName" placeholder="Nom / prénom"><input id="orderEmail" type="email" value="${esc(authUser?.email||'')}" placeholder="Email"><input id="orderAddress" placeholder="Adresse de livraison"><input id="orderCity" placeholder="Code postal + ville"><textarea id="orderNote" placeholder="Message ou précision (facultatif)"></textarea><button class="btn primary full" onclick="submitOrder()">📩 Envoyer la commande & ouvrir PayPal</button><p class="sub">La commande est d'abord envoyée à l'administrateur, puis PayPal s'ouvre.</p></div></div>`;render()}
+async function sendOrderMail(payload){
+  // La commande est déjà dans Supabase : l'e-mail ne peut jamais l'annuler. Timeout 20 s (Brevo peut être lent).
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),20000);
+  try{
+    const res=await fetch(functionUrl('send-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok||data.ok!==true){console.warn('[send-order]',res.status,data);return 'l’e-mail de confirmation n’a pas pu être envoyé.'}
+    if(data.customerSent===false)return 'l’e-mail client n’a pas pu être envoyé (adresse à vérifier).';
+    return '';
+  }catch(e){
+    console.warn('[send-order]',e);
+    return e?.name==='AbortError'?'l’e-mail met plus de temps que prévu à partir.':'l’e-mail est temporairement indisponible.';
+  }finally{clearTimeout(timeout)}
+}
 async function submitOrder(){
   if(orderSubmitting){showToast('Commande déjà en cours d’envoi… ⏳');return}
   const name=document.getElementById('orderName')?.value.trim()||'',email=document.getElementById('orderEmail')?.value.trim()||'',address=document.getElementById('orderAddress')?.value.trim()||'',city=document.getElementById('orderCity')?.value.trim()||'',note=document.getElementById('orderNote')?.value.trim()||'';
@@ -843,17 +911,9 @@ async function submitOrder(){
     if(!orderId)throw new Error('La commande a été créée mais son identifiant est introuvable. Réessaie une seule fois.');
     if(btn)btn.textContent='📨 Envoi de la confirmation…';let mailWarning='';
     // Le mail est secondaire : la commande est déjà enregistrée. Il ne doit jamais bloquer PayPal.
-    try{
-      const controller=new AbortController();
-      const timeout=setTimeout(()=>controller.abort(),5000);
-      const res=await fetch(functionUrl('send-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,address,city,note,items,total,pseudo:state.pseudo,orderId}),signal:controller.signal,keepalive:true});
-      clearTimeout(timeout);
-      const data=await res.json().catch(()=>({}));
-      if(!res.ok||data.ok!==true)mailWarning=data.error||'Le mail de confirmation n’a pas pu être envoyé.';
-      else if(data.warning)mailWarning=data.warning;
-    }catch(e){mailWarning=e?.name==='AbortError'?'Le mail prend plus de temps, mais la commande est bien enregistrée.':'Le mail de confirmation est temporairement indisponible.'}
-    shopCart=[];closeModal();await loadMyOrders(true);showToast(mailWarning?'Commande enregistrée ✅ — '+mailWarning:'Commande enregistrée et envoyée ! ✅');setTimeout(()=>{window.location.href=PAYPAL_LINK},650);
-  }catch(e){showToast(e.message||'Erreur d’enregistrement de la commande')}finally{orderSubmitting=false}
+    mailWarning=await sendOrderMail({name,email,address,city,note,items,total,pseudo:state.pseudo,orderId});
+    shopCart=[];closeModal();burst('✅');loadMyOrders(true).catch(()=>{});showToast(mailWarning?'Commande enregistrée ✅ — '+mailWarning:'Commande enregistrée et confirmation envoyée ! ✅');setTimeout(()=>{window.location.href=PAYPAL_LINK},1200);setTimeout(()=>{orderSubmitting=false},8000);return
+  }catch(e){orderSubmitting=false;const b2=[...document.querySelectorAll('button')].find(x=>String(x.getAttribute('onclick')||'').includes('submitOrder()'));if(b2){b2.disabled=false;b2.textContent='📩 Envoyer la commande & ouvrir PayPal'}showToast(e.message||'Erreur d’enregistrement de la commande')}
 }
 function startChronoFirst(){const d=state.courses.flatMap(c=>c.decks).find(x=>Array.isArray(x.cards)&&x.cards.length>0);if(!d){showToast("Aucune carte disponible 📭");return}openChrono(d.id)}
 let quiz={};
