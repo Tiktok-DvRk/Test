@@ -128,7 +128,8 @@ body:before{width:280px;height:280px;left:-100px;top:8%;background:#c4b5fd}body:
 .deck-learning-overlay{z-index:var(--z-overlay);overscroll-behavior:contain}.toast{z-index:var(--z-toast);top:calc(15px + env(safe-area-inset-top))}
 @keyframes v32Fade{from{opacity:0}to{opacity:1}}@keyframes v32Sheet{from{opacity:0;transform:translateY(40px) scale(.98)}to{opacity:1;transform:none}}
 body{background:radial-gradient(1200px 500px at 10% -10%,rgba(147,51,234,.10),transparent 60%),radial-gradient(900px 500px at 100% 0,rgba(236,72,153,.08),transparent 60%),var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
-.card{background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow);transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.card{border:1px solid var(--border);box-shadow:var(--shadow);transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.card[class*=gradient],.card.shop-hero{border-color:transparent;color:#fff}.card[class*=gradient] .sub,.card.shop-hero p{color:inherit}
 @media(hover:hover){.card:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}}
 .page>.card,.page>button.card{animation:schutzFadeUp .4s var(--ease) both}.page>*:nth-child(2){animation-delay:.04s}.page>*:nth-child(3){animation-delay:.08s}.page>*:nth-child(4){animation-delay:.12s}.page>*:nth-child(n+5){animation-delay:.16s}
 .btn,button.card,.nav button,.review-scope-item{min-height:44px;transition:transform .15s var(--ease),box-shadow .2s ease,filter .2s ease;touch-action:manipulation}
@@ -145,6 +146,25 @@ input,textarea,select{font-size:16px;border-color:var(--border);transition:borde
 @media(max-width:520px){.modal{border-radius:22px 22px 0 0}}
 @media(max-height:480px) and (orientation:landscape){.modal{max-height:96dvh}.nav{height:calc(64px + env(safe-area-inset-bottom))}.nav .ico{font-size:20px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.burst{display:none}}
+/* ===== V33 : fix admin scroll + refonte visuelle ===== */
+.modal.admin-shell{overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.admin-tabs{position:sticky;top:0;z-index:2;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:rgba(248,250,252,.9)}
+.admin-section{animation:schutzFadeUp .25s var(--ease) both}
+.brandbar{background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(20px) saturate(1.4);backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(255,255,255,.8);box-shadow:var(--shadow)}
+.nav{background:rgba(255,255,255,.78);-webkit-backdrop-filter:blur(24px) saturate(1.5);backdrop-filter:blur(24px) saturate(1.5);box-shadow:0 -12px 40px rgba(79,70,229,.12)}
+.nav button{position:relative;transition:color .2s,transform .15s var(--ease)}
+.nav button.active{color:var(--secondary)}
+.nav button.active:before{content:'';position:absolute;inset:8px 6px;border-radius:18px;background:linear-gradient(135deg,rgba(79,70,229,.14),rgba(236,72,153,.14));animation:v32Fade .25s ease both;z-index:-1}
+.btn.primary,.btn.purple{background:linear-gradient(135deg,var(--primary),var(--secondary) 62%,var(--accent));color:#fff;border:0;box-shadow:0 8px 22px rgba(147,51,234,.28)}
+.card.gradient,.card.gradient2,.card.shop-hero{background-size:140% 140%;box-shadow:0 14px 36px rgba(79,70,229,.28),inset 0 1px 0 rgba(255,255,255,.25)}
+.title{background:linear-gradient(135deg,var(--primary),var(--secondary) 55%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
+.section-title{display:flex;align-items:center;gap:8px;font-weight:800}.section-title:before{content:'';width:4px;height:18px;border-radius:4px;background:linear-gradient(var(--primary),var(--accent))}
+.list-item{border:1px solid var(--border);box-shadow:0 4px 14px rgba(79,70,229,.06);transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+.list-item:active{transform:scale(.985)}@media(hover:hover){.list-item:hover{transform:translateY(-2px);box-shadow:var(--shadow-hover)}}
+.shop-add{border-radius:14px;min-width:48px;min-height:48px}.shop-add:active{transform:scale(.88) rotate(90deg)}
+.iconbox{background:linear-gradient(135deg,rgba(79,70,229,.10),rgba(236,72,153,.10));transition:transform .3s var(--ease)}.shop-product:hover .iconbox{transform:rotate(-6deg) scale(1.08)}
+.toast{-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.tab-enter{animation:v33Tab .3s var(--ease) both!important}@keyframes v33Tab{from{opacity:0;transform:translateY(16px) scale(.99)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body data-version="V19">
