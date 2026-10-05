@@ -888,7 +888,7 @@ async function sendOrderMail(payload){
   try{
     const res=await fetch(functionUrl('send-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
     const data=await res.json().catch(()=>({}));
-    if(!res.ok||data.ok!==true){console.warn('[send-order]',res.status,data);return 'l’e-mail de confirmation n’a pas pu être envoyé.'}
+    if(!res.ok||data.ok!==true){console.warn('[send-order]',res.status,data);return 'e-mail non envoyé'+(data.error?' ('+String(data.error).slice(0,140)+')':' (erreur '+res.status+')')+'.'}
     if(data.customerSent===false)return 'l’e-mail client n’a pas pu être envoyé (adresse à vérifier).';
     return '';
   }catch(e){
