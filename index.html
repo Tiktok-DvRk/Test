@@ -886,7 +886,11 @@ async function sendOrderMail(payload){
   // La commande est déjà dans Supabase : l'e-mail ne peut jamais l'annuler. Timeout 20 s (Brevo peut être lent).
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),20000);
   try{
-    const res=await fetch(functionUrl('send-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal});
+    // Domaine perso (schutz-app.fr) : functionUrl peut se tromper de plateforme, on essaie les deux chemins sur 404.
+    const first=functionUrl('send-order'),alt=first.startsWith('/api/')?'/.netlify/functions/send-order':'/api/send-order';
+    const opts={method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:controller.signal};
+    let res=await fetch(first,opts);
+    if(res.status===404||res.status===405)res=await fetch(alt,opts);
     const data=await res.json().catch(()=>({}));
     if(!res.ok||data.ok!==true){console.warn('[send-order]',res.status,data);return 'e-mail non envoyé'+(data.error?' ('+String(data.error).slice(0,140)+')':' (erreur '+res.status+')')+'.'}
     if(data.customerSent===false)return 'l’e-mail client n’a pas pu être envoyé (adresse à vérifier).';
