@@ -842,8 +842,17 @@ async function submitOrder(){
     const orderId=typeof rpc.data==='string'?rpc.data:(rpc.data?.id||rpc.data?.[0]?.id||null);
     if(!orderId)throw new Error('La commande a été créée mais son identifiant est introuvable. Réessaie une seule fois.');
     if(btn)btn.textContent='📨 Envoi de la confirmation…';let mailWarning='';
-    try{const res=await fetch(functionUrl('send-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,address,city,note,items,total,pseudo:state.pseudo,orderId})});const data=await res.json().catch(()=>({}));if(!res.ok||data.ok!==true)mailWarning=data.error||'Le mail de confirmation n’a pas pu être envoyé.'; else if(data.warning) mailWarning=data.warning}catch(e){mailWarning='Le mail de confirmation est temporairement indisponible.'}
-    shopCart=[];closeModal();await loadMyOrders(true);showToast(mailWarning?'Commande enregistrée ✅ — email indisponible pour le moment':'Commande enregistrée et envoyée ! ✅');setTimeout(()=>{window.location.href=PAYPAL_LINK},650);
+    // Le mail est secondaire : la commande est déjà enregistrée. Il ne doit jamais bloquer PayPal.
+    try{
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),5000);
+      const res=await fetch(functionUrl('send-order'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,address,city,note,items,total,pseudo:state.pseudo,orderId}),signal:controller.signal,keepalive:true});
+      clearTimeout(timeout);
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok||data.ok!==true)mailWarning=data.error||'Le mail de confirmation n’a pas pu être envoyé.';
+      else if(data.warning)mailWarning=data.warning;
+    }catch(e){mailWarning=e?.name==='AbortError'?'Le mail prend plus de temps, mais la commande est bien enregistrée.':'Le mail de confirmation est temporairement indisponible.'}
+    shopCart=[];closeModal();await loadMyOrders(true);showToast(mailWarning?'Commande enregistrée ✅ — '+mailWarning:'Commande enregistrée et envoyée ! ✅');setTimeout(()=>{window.location.href=PAYPAL_LINK},650);
   }catch(e){showToast(e.message||'Erreur d’enregistrement de la commande')}finally{orderSubmitting=false}
 }
 function startChronoFirst(){const d=state.courses.flatMap(c=>c.decks).find(x=>Array.isArray(x.cards)&&x.cards.length>0);if(!d){showToast("Aucune carte disponible 📭");return}openChrono(d.id)}
