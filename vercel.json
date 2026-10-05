@@ -1,0 +1,7 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/d/:path*", "destination": "/index.html" },
+    { "source": "/c/:path*", "destination": "/index.html" }
+  ]
+}
