@@ -18,10 +18,19 @@ export default async req=>{
   const transporter=nodemailer.createTransport({host:'smtp-relay.brevo.com',port:587,secure:false,requireTLS:true,connectionTimeout:10000,greetingTimeout:10000,socketTimeout:15000,auth:{user:process.env.BREVO_SMTP_USER,pass:process.env.BREVO_SMTP_PASS}});
   const safeTotal=Number(total)||0;
   const rows=items.map(i=>`<li>${esc(i.name)} — ${Number(i.qty)||0} × ${(Number(i.unitPrice)||0).toFixed(2)} €</li>`).join('');
+  let ownerSent=false, customerSent=false, warnings=[];
   try{
     await transporter.sendMail({from:process.env.SHOP_FROM_EMAIL,to:process.env.SHOP_OWNER_EMAIL,replyTo:email,subject:`🍵 Nouvelle commande Schutz Tea — ${name}`,html:`<h2>🍵 Nouvelle commande</h2><p><b>ID :</b> ${esc(orderId)}</p><p><b>Client :</b> ${esc(name)}<br><b>Pseudo :</b> ${esc(pseudo||'-')}<br><b>Email :</b> ${esc(email)}<br><b>Livraison :</b> ${esc(address)}, ${esc(city)}</p><ul>${rows}</ul><p><b>Total : ${safeTotal.toFixed(2)} €</b></p><p>${esc(note||'')}</p>`});
+    ownerSent=true;
+  }catch(e){warnings.push('Email admin : '+(e?.message||'erreur SMTP'))}
+  try{
     await transporter.sendMail({from:process.env.SHOP_FROM_EMAIL,to:email,subject:`🍵 Confirmation de ta commande Schutz Tea — ${orderId}`,html:`<h2>Commande envoyée ✅</h2><p>Bonjour ${esc(name)},</p><p>Nous avons bien reçu ta commande.</p><p><b>Adresse de livraison :</b> ${esc(address)}, ${esc(city)}</p><ul>${rows}</ul><p><b>Total : ${safeTotal.toFixed(2)} €</b></p><p>Ta commande est en attente de traitement. Tu recevras un email à chaque changement de statut.</p><p>Merci 🍵</p>`});
-    await sb.from('shop_orders').update({status_email_sent_status:'order_confirmation_sent'}).eq('id',orderId);
-    return json({ok:true});
-  }catch(e){await sb.from('shop_orders').update({status_email_sent_at:null,status_email_sent_status:'order_confirmation_failed'}).eq('id',orderId).eq('status_email_sent_status','order_confirmation_sending');return json({ok:false,error:'Commande enregistrée, mais email non envoyé : '+(e?.message||'')},502)}
+    customerSent=true;
+  }catch(e){warnings.push('Email client : '+(e?.message||'erreur SMTP'))}
+  if(ownerSent || customerSent){
+    await sb.from('shop_orders').update({status_email_sent_status:ownerSent&&customerSent?'order_confirmation_sent':'order_confirmation_partial'}).eq('id',orderId);
+    return json({ok:true,ownerSent,customerSent,warning:warnings.join(' | ')});
+  }
+  await sb.from('shop_orders').update({status_email_sent_at:null,status_email_sent_status:'order_confirmation_failed'}).eq('id',orderId).eq('status_email_sent_status','order_confirmation_sending');
+  return json({ok:false,error:'Commande enregistrée, mais aucun email n’a pu être envoyé. '+warnings.join(' | ')},502);
 };
