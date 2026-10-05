@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "functions": { "api/*.js": { "maxDuration": 30 } },
   "rewrites": [
     { "source": "/d/:path*", "destination": "/index.html" },
     { "source": "/c/:path*", "destination": "/index.html" }
