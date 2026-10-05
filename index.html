@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>schutz-app.fr 🚀 — V19</title>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']]
+  },
+  chtml: { scale: 1 }
+};
+</script>
+<script src="supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif;background:#f5f5fa;color:#111827}
+button,input,textarea,select{font:inherit}button{cursor:pointer;border:0}.app{min-height:100vh;padding-bottom:104px}
+.nav{position:fixed;bottom:0;left:0;right:0;height:calc(96px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(255,255,255,.96);backdrop-filter:blur(16px);display:flex;z-index:100;border-top:1px solid #ddd}
+.nav button{flex:1;background:none;color:#6b7280;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:96px;padding:8px 2px}.nav button.active{color:#4f46e5;font-weight:700}.nav .ico{font-size:28px;line-height:1}
+.page{max-width:900px;margin:auto;padding:18px}.title{font-size:29px;font-weight:800;margin:6px 0 18px}.sub{color:#6b7280;font-size:14px}
+.card{background:white;border-radius:18px;padding:16px;box-shadow:0 4px 18px rgba(0,0,0,.07);margin:12px 0}
+.gradient{background:linear-gradient(135deg,#4f46e5,#9333ea);color:white}.gradient2{background:linear-gradient(135deg,#2563eb,#4f46e5);color:white}
+.row{display:flex;align-items:center;gap:12px}.between{justify-content:space-between}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grow{flex:1}
+.btn{padding:12px 15px;border-radius:12px;font-weight:700}.primary{background:#4f46e5;color:#fff}.secondary{background:#eef2ff;color:#4338ca}.green{background:#16a34a;color:#fff}.orange{background:#f97316;color:#fff}.red{background:#dc2626;color:#fff}.gray{background:#eef0f3;color:#374151}.purple{background:#9333ea;color:white}
+.btn:disabled{opacity:.45;cursor:not-allowed}.full{width:100%}.small{font-size:13px;padding:9px 11px}
+input,textarea,select{width:100%;border:1px solid #d1d5db;border-radius:12px;padding:12px;background:#fff;color:#111827;outline:none}textarea{min-height:180px;resize:vertical}
+.section-title{font-weight:800;margin:18px 0 8px}.list-item{background:white;border-radius:14px;padding:14px;margin:8px 0;display:flex;align-items:center;gap:12px}.list-item .main{flex:1}.badge{background:#eef2ff;color:#4f46e5;border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700}
+.iconbox{width:42px;height:42px;border-radius:11px;background:#eef2ff;display:grid;place-items:center;font-size:21px}
+.empty{text-align:center;color:#6b7280;padding:30px 12px}.muted{color:#6b7280}.danger{color:#dc2626}.success{color:#16a34a}
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:flex-end;justify-content:center}.modal{background:#fff;width:100%;max-width:720px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px}
+@media(min-width:700px){.modal-back{align-items:center}.modal{border-radius:22px}.page{padding-top:30px}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.close{background:#eef0f3;border-radius:50%;width:34px;height:34px}
+.math{overflow-wrap:anywhere}.math.center{text-align:center}.mjx-container{max-width:100%}
+.home-head{display:flex;align-items:center;justify-content:space-between;padding:17px;border-radius:18px}.stats{display:flex;gap:15px;text-align:right}.stat b{display:block}.mission{min-height:140px}.mission .mi{width:38px;height:38px;border-radius:10px;color:white;display:grid;place-items:center;margin-bottom:10px}
+.progress{height:8px;background:#e5e7eb;border-radius:20px;overflow:hidden}.progress>div{height:100%;background:#4f46e5;border-radius:20px}
+.option{width:100%;text-align:left;border-radius:13px;padding:14px;background:#f3f4f6;margin:6px 0;min-height:54px}.option.correct{background:#dcfce7}.option.wrong{background:#fee2e2}
+.keyboard{background:#e5e7eb;border-radius:14px;padding:8px;margin-top:8px}.keyrow{display:flex;gap:4px;margin:4px 0}.key{flex:1;min-width:0;height:40px;border-radius:6px;background:#fff}.key.wide{flex:0 0 72px}.space{flex:1;height:40px;border-radius:6px;background:#fff}
+.toast{position:fixed;top:15px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:11px 15px;border-radius:12px;z-index:500;font-weight:700}
+.auth-error{background:#fee2e2;color:#991b1b;border-radius:12px;padding:11px;margin:10px 0;text-align:left;font-size:14px}.auth-switch{color:#fff;background:none;text-decoration:underline;font-weight:700;padding:8px}.welcome{min-height:100vh;background:linear-gradient(135deg,#4f46e5,#9333ea,#2563eb);display:flex;align-items:center;justify-content:center;color:white}.welcome-inner{width:min(650px,100%);padding:25px;text-align:center}.welcome input{background:rgba(255,255,255,.18);color:white;border-color:rgba(255,255,255,.25)}.welcome input::placeholder{color:rgba(255,255,255,.75)}
+.podium{font-size:24px;width:34px}.footer-social{text-align:center;padding:18px 10px 20px;color:#6b7280;font-size:14px}.footer-social a{display:inline-flex;align-items:center;gap:7px;margin-top:7px;color:#4f46e5;font-weight:800;text-decoration:none}.footer-social small{display:block;margin-top:5px;color:#9ca3af}.danger-btn{background:none;color:#dc2626;font-size:20px}
+
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.feature-card{background:white;border-radius:16px;padding:15px;box-shadow:0 3px 12px rgba(0,0,0,.06)}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef2ff;color:#4338ca;font-size:12px;font-weight:800}.stamp{font-size:32px;filter:grayscale(1);opacity:.35}.stamp.on{filter:none;opacity:1}.qr-wrap{display:flex;justify-content:center;background:white;padding:18px;border-radius:18px}.timer-big{font-size:64px;font-weight:900;text-align:center;letter-spacing:2px}.grade-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mini{font-size:12px;color:#6b7280}
+
+/* Schutz App — animations dynamiques */
+@keyframes schutzFadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes schutzPop{0%{transform:scale(.92);opacity:.5}70%{transform:scale(1.05)}100%{transform:scale(1);opacity:1}}
+@keyframes schutzFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes schutzShine{0%{background-position:-300% 0}100%{background-position:300% 0}}
+.page{animation:schutzFadeUp .28s ease both}.card,.list-item{transition:transform .18s ease,box-shadow .18s ease}.card:hover,.list-item:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.09)}.btn{transition:transform .12s ease,filter .12s ease}.btn:active{transform:scale(.96)}.feature-card{animation:schutzFadeUp .35s ease both}.stamp{transition:transform .25s ease,filter .25s ease,opacity .25s ease}.stamp.on{animation:schutzPop .35s ease both}.loyalty-progress{height:10px;background:#fde7c7;border-radius:99px;overflow:hidden}.loyalty-progress>div{height:100%;background:linear-gradient(90deg,#f59e0b,#ea580c,#f59e0b);background-size:200% 100%;animation:schutzShine 2.4s linear infinite;border-radius:99px;transition:width .45s ease}.shop-hero{animation:schutzFloat 3s ease-in-out infinite}
+
+ .deck-learning-overlay{position:fixed;inset:0;background:radial-gradient(circle at 50% 15%,#312e81 0,#111827 48%,#020617 100%);z-index:350;color:#fff;display:flex;flex-direction:column;overflow:hidden;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));touch-action:none}
+ .deck-learning-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 2px 14px}.deck-learning-top .sub{color:#cbd5e1}.deck-learning-card-wrap{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:10px 0}.deck-learning-card{width:min(920px,96vw);max-height:82vh;min-height:min(56vh,620px);overflow:auto;border-radius:28px;background:#fff;color:#111827;padding:clamp(22px,5vw,52px);box-shadow:0 30px 70px rgba(0,0,0,.35);display:flex;flex-direction:column;justify-content:center;user-select:none;-webkit-user-select:none;will-change:transform}.deck-learning-card.swiping{transition:none}.deck-learning-card .learning-front,.deck-learning-card .learning-back{font-size:clamp(22px,4vw,42px);line-height:1.45}.deck-learning-card .learning-back{margin-top:24px;padding-top:22px;border-top:2px solid #e5e7eb;color:#166534}.deck-learning-hint{text-align:center;color:#cbd5e1;font-size:13px;padding:10px 8px 4px}.swipe-map{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:8px 0 3px}.swipe-map span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:8px 5px;text-align:center;font-size:11px}.fullscreen-share{background:#0f172a;color:#fff}
+ .review-scope-grid{display:grid;grid-template-columns:1fr;gap:8px}.review-scope-item{text-align:left;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:13px}.review-scope-item.deck{margin-left:18px;background:#fff}.media-preview{max-width:100%;max-height:260px;border-radius:14px;object-fit:contain;display:block;margin:8px auto}.draw-wrap{border:1px solid #d1d5db;border-radius:14px;padding:8px;background:#fff}.draw-canvas{width:100%;height:220px;display:block;touch-action:none;background:#fff;border-radius:10px}.admin-product{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+
+</style>
+</head>
+<body data-version="V19">
+<div id="root"></div>
+<script>
+const KEY="schutzAppExactV1";
+function defaultState(){return {pseudo:"",score:0,streak:1,lastActiveDate:"",courses:[],friends:[],loyaltyStamps:0,dsGrades:[],notes:[],sharedExercises:[],pdfs:[],dailyReminder:{enabled:false,time:"18:00",timezone:"Europe/Paris",lastSentKey:""},avatarUrl:"",avatarPath:""}}
+function loadState(){try{return {...defaultState(),...JSON.parse(localStorage.getItem(KEY)||"{}")}}catch{return defaultState()}}
+const state = loadState();
+let tab="home", modal=null, toastMsg="", timer=null;
+let remoteLeaderboard=[];
+let remoteBusy=false;
+let remoteError="";
+let authMode="login";
+let authUser=null;
+let authLoading=true;
+let authMessage="";
+let resetMode=false;
+let shopCart=[];
+let orderSubmitting=false;
+let qrPendingUrl="";
+let deckSwipeStart={x:0,y:0};
+let drawingState=null;
+const DEFAULT_SHOP_PRODUCTS=[
+{id:'tea-turkish',name:'Thé turc',desc:'Thé turc',price:0.20,emoji:'🫖'},
+{id:'tea-mint',name:'Thé à la menthe',desc:'Thé parfumé à la menthe',price:0.20,emoji:'🌿'},
+{id:'tea-green',name:'Thé vert',desc:'Thé vert',price:0.20,emoji:'🍃'},
+{id:'tea-black',name:'Thé noir',desc:'Thé noir',price:0.20,emoji:'🫖'},
+{id:'tea-apple',name:'Thé à la pomme',desc:'Thé parfumé à la pomme',price:0.20,emoji:'🍎'},
+{id:'tea-lemon',name:'Thé au citron',desc:'Thé parfumé au citron',price:0.20,emoji:'🍋'},
+{id:'tea-peach',name:'Thé à la pêche',desc:'Thé parfumé à la pêche',price:0.20,emoji:'🍑'},
+{id:'tea-berry',name:'Thé fruits rouges',desc:'Thé parfumé aux fruits rouges',price:0.20,emoji:'🫐'},
+{id:'tea-rose',name:'Thé à la rose',desc:'Thé parfumé à la rose',price:0.20,emoji:'🌹'},
+{id:'tea-chai',name:'Thé chai',desc:'Thé épicé',price:0.20,emoji:'☕'},
+{id:'coffee',name:'Café',desc:'Café à l’unité',price:0.50,emoji:'☕'}
+];
+let SHOP_PRODUCTS=[...DEFAULT_SHOP_PRODUCTS];
+
+const SUPABASE_URL = window.SUPABASE_CONFIG?.url || "";
+const SUPABASE_KEY = window.SUPABASE_CONFIG?.anonKey || "";
+const supabaseClient = (SUPABASE_URL && !SUPABASE_URL.includes("VOTRE_") && SUPABASE_KEY && !SUPABASE_KEY.includes("VOTRE_"))
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+    })
+  : null;
+const remoteEnabled = !!supabaseClient;
+
+function uid(){return crypto.randomUUID ? crypto.randomUUID() : Date.now()+"-"+Math.random()}
+function saveLocal(){localStorage.setItem(KEY,JSON.stringify(state))}
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function mathText(s){return esc(s).replace(/\n/g,"<br>")}
+function courseById(id){return state.courses.find(x=>x.id===id)}
+function deckById(id){for(const c of state.courses){const d=c.decks.find(x=>x.id===id);if(d)return d}}
+function allCards(){return state.courses.flatMap(c=>c.decks.flatMap(d=>d.cards))}
+function showToast(m){toastMsg=m;render();setTimeout(()=>{toastMsg="";render()},1800)}
+async function getAuthUser(){
+  if(!supabaseClient){authLoading=false;return null}
+  const {data}=await supabaseClient.auth.getSession();
+  authUser=data?.session?.user||null;
+  authLoading=false;
+  return authUser;
+}
+
+async function signUpAccount(){
+  if(!supabaseClient){authMessage="Le classement/sauvegarde cloud n'est pas encore configuré.";render();return}
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  const pseudo=document.getElementById("authPseudo").value.trim();
+  if(!email||!password||!pseudo){authMessage="Remplis ton email, ton mot de passe et ton pseudo.";render();return}
+  if(password.length<6){authMessage="Le mot de passe doit contenir au moins 6 caractères.";render();return}
+  authLoading=true;authMessage="";
+  const {data,error}=await supabaseClient.auth.signUp({
+    email,password,
+    options:{data:{pseudo}}
+  });
+  if(error){authLoading=false;authMessage=error.message;render();return}
+  if(data?.session){
+    authUser=data.session.user;
+    state.pseudo=pseudo;
+    state.streak=state.streak||1;
+    saveLocal();
+    await migrateLocalDataToCloud();
+    await loadCloudData();
+    authLoading=false;
+    render();
+  }else{
+    authLoading=false;
+    authMessage="Compte créé. Vérifie ton email puis reconnecte-toi pour accéder à tes cartes.";
+    authMode="login";
+    render();
+  }
+}
+
+async function signInAccount(){
+  if(!supabaseClient){authMessage="Le classement/sauvegarde cloud n'est pas encore configuré.";render();return}
+  const email=document.getElementById("authEmail").value.trim();
+  const password=document.getElementById("authPassword").value;
+  if(!email||!password){authMessage="Entre ton email et ton mot de passe.";render();return}
+  authLoading=true;authMessage="";
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error){authLoading=false;authMessage="Email ou mot de passe incorrect.";render();return}
+  authUser=data.user;
+  await loadCloudData();
+  await syncMyLoyalty();
+  await cloudSaveAll();
+  await publishScore();
+  authLoading=false;
+  render();
+}
+
+async function logout(){
+  if(supabaseClient) await supabaseClient.auth.signOut();
+  authUser=null;
+  state.pseudo="";
+  state.courses=[];
+  state.score=0;
+  state.streak=1;
+  saveLocal();
+  tab="home";
+  render();
+}
+
+async function requestPasswordReset(){
+  if(!supabaseClient){authMessage="Le service de récupération n'est pas configuré.";render();return}
+  const email=document.getElementById("authEmail")?.value.trim();
+  if(!email){authMessage="Entre ton email pour recevoir le lien de réinitialisation.";render();return}
+  authLoading=true;authMessage="";render();
+  const redirectTo=location.origin+location.pathname+"?reset=1";
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo});
+  authLoading=false;
+  authMessage=error?error.message:"Si un compte existe avec cette adresse, un lien de réinitialisation vient d'être envoyé. Vérifie aussi les spams.";
+  render();
+}
+async function updatePassword(){
+  const password=document.getElementById("resetPassword")?.value||"";
+  const confirm=document.getElementById("resetPassword2")?.value||"";
+  if(password.length<6){authMessage="Le mot de passe doit contenir au moins 6 caractères.";render();return}
+  if(password!==confirm){authMessage="Les deux mots de passe ne correspondent pas.";render();return}
+  authLoading=true;authMessage="";render();
+  const {error}=await supabaseClient.auth.updateUser({password});
+  authLoading=false;
+  if(error){authMessage="Erreur : "+error.message;render();return}
+  resetMode=false;
+  await supabaseClient.auth.signOut();
+  authUser=null;
+  history.replaceState({},document.title,location.pathname);
+  authMessage="Mot de passe modifié ! Tu peux maintenant te connecter.";
+  render();
+}
+function resetPage(){return `<div class="welcome"><div class="welcome-inner"><div style="font-size:78px">🔐</div><h1>Nouveau mot de passe</h1><p style="opacity:.85">Choisis un nouveau mot de passe pour ton compte Schutz app.</p>${authMessage?`<div class="auth-error">${esc(authMessage)}</div>`:""}<input id="resetPassword" type="password" placeholder="Nouveau mot de passe"><br><br><input id="resetPassword2" type="password" placeholder="Confirmer le mot de passe"><br><br><button class="btn" style="background:#fff;color:#4f46e5;width:100%" onclick="updatePassword()">Changer mon mot de passe 🔐</button></div></div>`}
+function switchAuthMode(){
+  authMode=authMode==="login"?"signup":"login";
+  authMessage="";
+  render();
+}
+
+function authPage(){
+  const signup=authMode==="signup";
+  return `<div class="welcome"><div class="welcome-inner">
+    <div style="font-size:78px">🚀</div>
+    <h1>${signup?"Créer ton compte":"Connexion"}</h1>
+    <p style="opacity:.85">${signup?"Tes cartes seront sauvegardées sur schutz-app.fr et liées à ton compte.":"Retrouve tes cartes, tes cours et ta progression depuis n'importe quel appareil."}</p>
+    ${authMessage?`<div class="auth-error">${esc(authMessage)}</div>`:""}
+    ${signup?`<input id="authPseudo" placeholder="Ton pseudo (ex: Gwendal_Maths ⚡️)" autocomplete="nickname"><br><br>`:""}
+    <input id="authEmail" type="email" placeholder="Ton adresse email" autocomplete="email"><br><br>
+    <input id="authPassword" type="password" placeholder="Mot de passe (6 caractères minimum)" autocomplete="${signup?"new-password":"current-password"}"><br><br>
+    <button class="btn" style="background:#fff;color:#4f46e5;width:100%" onclick="${signup?"signUpAccount()":"signInAccount()"}">${signup?"Créer mon compte 🚀":"Me connecter 🔐"}</button>
+    ${!signup?`<button class="auth-switch" onclick="requestPasswordReset()">Mot de passe oublié ?</button>`:""}
+    <button class="auth-switch" onclick="switchAuthMode()">${signup?"J'ai déjà un compte → Se connecter":"Créer un compte →"}</button>
+    <p style="font-size:12px;opacity:.7;margin-top:18px">☁️ Sauvegarde automatique : tes cartes et ta progression sont enregistrées sur ton compte.</p>
+  </div></div>`;
+}
+
+async function syncAvatarToLeaderboard(){
+  if(!supabaseClient || !authUser) return;
+  const {error}=await supabaseClient.from("leaderboard").update({avatar_url:state.avatarUrl||null}).eq("user_id",authUser.id);
+  if(error) console.warn("Avatar classement:",error.message);
+}
+
+function storageErrorMessage(bucket,error){
+  const msg=String(error?.message||error||'Erreur Storage');
+  if(/bucket not found|not found/i.test(msg)) return `Le stockage « ${bucket} » n'est pas créé dans Supabase. Lance le fichier SUPABASE_V21_COMPLETE.sql fourni avec cette version.`;
+  if(/row-level security|policy|not authorized|permission/i.test(msg)) return `Accès refusé au stockage « ${bucket} ». La migration Supabase V21 doit être exécutée avec le compte administrateur.`;
+  return msg;
+}
+async function uploadProfileAvatar(){
+  if(!supabaseClient || !authUser) return;
+  const input=document.getElementById("profileAvatarFile");
+  const file=input?.files?.[0];
+  if(!file){showToast("Choisis une photo de profil.");return}
+  if(!file.type.startsWith("image/")){showToast("Choisis une image.");return}
+  if(file.size>5*1024*1024){showToast("Photo trop lourde : 5 Mo maximum.");return}
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const path=authUser.id+"/avatar-"+Date.now()+"."+ext;
+  const oldPath=state.avatarPath||"";
+  const {error}=await supabaseClient.storage.from("profile-avatars").upload(path,file,{contentType:file.type,upsert:false,cacheControl:"3600"});
+  if(error){showToast(storageErrorMessage("profile-avatars",error));return}
+  const {data}=supabaseClient.storage.from("profile-avatars").getPublicUrl(path);
+  state.avatarUrl=data.publicUrl;
+  state.avatarPath=path;
+  saveLocal();
+  await cloudSaveAll();
+  await publishScore();
+  await syncAvatarToLeaderboard();
+  if(oldPath && oldPath!==path) await supabaseClient.storage.from("profile-avatars").remove([oldPath]);
+  showToast("Photo de profil mise à jour ✅");
+  render();
+}
+
+async function removeProfileAvatar(){
+  if(!supabaseClient || !authUser) return;
+  const oldPath=state.avatarPath||"";
+  state.avatarUrl=""; state.avatarPath="";
+  saveLocal(); await cloudSaveAll(); await publishScore(); await syncAvatarToLeaderboard();
+  if(oldPath) await supabaseClient.storage.from("profile-avatars").remove([oldPath]);
+  showToast("Photo de profil supprimée."); render();
+}
+
+async function publishScore(){
+  if(!supabaseClient || !state.pseudo) return;
+  const pseudo=state.pseudo.trim();
+  if(!pseudo) return;
+  try{
+    const {error}=await supabaseClient.rpc("publish_leaderboard",{
+      p_pseudo:pseudo,
+      p_score:Math.max(0,Math.floor(Number(state.score)||0)),
+      p_streak:Math.max(1,Math.floor(Number(state.streak)||1))
+    });
+    if(error) throw error;
+    remoteError="";
+  }catch(e){
+    remoteError=e?.message||"Erreur classement";
+  }
+}
+
+async function refreshLeaderboard(){
+  if(!supabaseClient){remoteLeaderboard=[];return}
+  remoteBusy=true;
+  try{
+    const {data,error}=await supabaseClient
+      .from("leaderboard")
+      .select("pseudo,score,streak,updated_at,avatar_url")
+      .order("score",{ascending:false})
+      .limit(100);
+    if(error) throw error;
+    remoteLeaderboard=Array.isArray(data)?data:[];
+    remoteError="";
+  }catch(e){
+    remoteError=e?.message||"Impossible de charger le classement";
+    remoteLeaderboard=[];
+  }finally{
+    remoteBusy=false;
+    if(tab==="leader") render();
+  }
+}
+
+function remoteStatusText(){
+  if(!remoteEnabled) return "Classement partagé non configuré — mode local pour le moment.";
+  if(remoteBusy) return "Synchronisation du classement…";
+  if(remoteError) return "Classement distant indisponible : "+remoteError;
+  return "Classement partagé en direct entre les joueurs.";
+}
+
+let cloudSaveTimer=null;
+let cloudSaveBusy=false;
+
+function scheduleCloudSave(){
+  if(!remoteEnabled || !authUser) return;
+  if(cloudSaveTimer) clearTimeout(cloudSaveTimer);
+  cloudSaveTimer=setTimeout(async ()=>{
+    cloudSaveTimer=null;
+    if(cloudSaveBusy || !authUser) return;
+    cloudSaveBusy=true;
+    try{
+      await cloudSaveAll();
+      await publishScore();
+    }finally{
+      cloudSaveBusy=false;
+    }
+  },350);
+}
+
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(state));
+  // Sauvegarde automatique : chaque modification importante est envoyée au cloud
+  // sans bouton « synchroniser » à utiliser.
+  scheduleCloudSave();
+}
+async function syncMyLoyalty(){if(!supabaseClient||!authUser)return;const r=await supabaseClient.rpc('get_my_loyalty_stamps');if(!r.error&&typeof r.data==='number'){state.loyaltyStamps=Math.max(0,Math.min(6,r.data));saveLocal();render()}}
+function setTab(t){tab=t;render();if(t==="leader")refreshLeaderboard();if(t==="shop"){setTimeout(()=>{loadShopProducts();loadMyOrders();loadPublicReviews();syncMyLoyalty()},0)}if(t==="profile")syncMyLoyalty()}
+function updateStreak(){const today=new Date().toISOString().slice(0,10);if(state.lastActiveDate!==today){if(state.lastActiveDate){const a=new Date(state.lastActiveDate),b=new Date(today);const days=Math.round((b-a)/86400000);if(days===1)state.streak++;else if(days>1)state.streak=1}else state.streak=1;state.lastActiveDate=today;save()}}
+updateStreak();
+
+
+function cloudPayload(){
+  return {
+    pseudo:state.pseudo||"",
+    score:Number(state.score)||0,
+    streak:Number(state.streak)||1,
+    lastActiveDate:state.lastActiveDate||"",
+    courses:Array.isArray(state.courses)?state.courses:[],
+    friends:Array.isArray(state.friends)?state.friends:[],
+    loyaltyStamps:Number(state.loyaltyStamps)||0,
+    stamps:Number(state.loyaltyStamps)||0,
+    dsGrades:Array.isArray(state.dsGrades)?state.dsGrades:[],
+    notes:Array.isArray(state.notes)?state.notes:[],
+    sharedExercises:Array.isArray(state.sharedExercises)?state.sharedExercises:[],
+    pdfs:Array.isArray(state.pdfs)?state.pdfs:[],
+    dailyReminder:state.dailyReminder||{enabled:false,time:"18:00"},
+    avatarUrl:state.avatarUrl||"",
+    avatarPath:state.avatarPath||""
+  };
+}
+
+async function cloudSaveAll(){
+  if(!supabaseClient || !authUser) return;
+  const {error}=await supabaseClient.rpc("save_my_player_data",{p_data:cloudPayload()});
+  if(error) console.warn("Sauvegarde cloud:",error.message);
+}
+
+async function loadCloudData(){
+  if(!supabaseClient || !authUser) return false;
+  const {data,error}=await supabaseClient
+    .from("player_data")
+    .select("pseudo,data")
+    .eq("user_id",authUser.id)
+    .maybeSingle();
+  if(error){console.warn("Chargement cloud:",error.message);return false}
+  if(data?.data){
+    const cloud=data.data;
+    if(cloud.pseudo) state.pseudo=cloud.pseudo;
+    if(Array.isArray(cloud.courses)) state.courses=cloud.courses;
+    if(Array.isArray(cloud.friends)) state.friends=cloud.friends;
+    if(typeof cloud.loyaltyStamps==="number") state.loyaltyStamps=cloud.loyaltyStamps; else if(typeof cloud.stamps==="number") state.loyaltyStamps=cloud.stamps;
+    if(Array.isArray(cloud.dsGrades)) state.dsGrades=cloud.dsGrades;
+    if(Array.isArray(cloud.notes)) state.notes=cloud.notes;
+    if(Array.isArray(cloud.sharedExercises)) state.sharedExercises=cloud.sharedExercises;
+    if(Array.isArray(cloud.pdfs)) state.pdfs=cloud.pdfs;
+    if(cloud.dailyReminder) state.dailyReminder=cloud.dailyReminder;
+    if(typeof cloud.avatarUrl==="string") state.avatarUrl=cloud.avatarUrl;
+    if(typeof cloud.avatarPath==="string") state.avatarPath=cloud.avatarPath;
+    if(typeof cloud.score==="number") state.score=cloud.score;
+    if(typeof cloud.streak==="number") state.streak=cloud.streak;
+    if(cloud.lastActiveDate) state.lastActiveDate=cloud.lastActiveDate;
+    saveLocal();
+    return true;
+  }
+  // New account: preserve any cards created before account creation and upload them.
+  if(state.pseudo || state.courses.length || state.score){
+    await cloudSaveAll();
+    return true;
+  }
+  return false;
+}
+
+async function migrateLocalDataToCloud(){
+  if(!supabaseClient || !authUser) return;
+  await cloudSaveAll();
+}
+
+async function initAuth(){
+  if(!supabaseClient){authLoading=false;return}
+  const recoveryRequested=()=>{
+    const params=new URLSearchParams(location.search);
+    const hash=String(location.hash||"");
+    return params.get("reset")==="1" || params.has("code") || hash.includes("type=recovery") || hash.includes("access_token=");
+  };
+  supabaseClient.auth.onAuthStateChange((event,session)=>{
+    authUser=session?.user||null;
+    if(event==="PASSWORD_RECOVERY" || recoveryRequested()){
+      resetMode=true;
+      authMessage="";
+      render();
+      return;
+    }
+    if(authUser && !resetMode){
+      setTimeout(async()=>{await loadCloudData();await syncMyLoyalty();await loadShopProducts();render();handlePendingDeckShare()},0);
+    }else if(!authUser && !resetMode){render()}
+  });
+  const {data,error}=await supabaseClient.auth.getSession();
+  if(error) console.warn("Session auth:",error.message);
+  authUser=data?.session?.user||null;
+  if(recoveryRequested()){
+    resetMode=true;
+    authLoading=false;
+    render();
+    return;
+  }
+  if(authUser && !resetMode){
+    await loadCloudData();
+    await syncMyLoyalty();
+    await loadShopProducts();
+    if(!state.pseudo){const p=authUser.user_metadata?.pseudo||"";if(p){state.pseudo=p;saveLocal();await cloudSaveAll()}}
+  }
+  authLoading=false;
+  render();
+}
+
+document.addEventListener("visibilitychange",()=>{
+  if(document.visibilityState==="hidden"){
+    localStorage.setItem(KEY,JSON.stringify(state));
+    if(remoteEnabled && authUser){ cloudSaveAll(); publishScore(); }
+  }
+});
+
+window.addEventListener("pagehide",()=>{
+  localStorage.setItem(KEY,JSON.stringify(state));
+});
+
+function render(){
+ const r=document.getElementById("root");
+ if(authLoading){r.innerHTML=`<div class="welcome"><div class="welcome-inner"><div style="font-size:70px">⚡️</div><h2>Chargement de schutz-app.fr…</h2></div></div>`;return}
+ if(!remoteEnabled){r.innerHTML=`<div class="welcome"><div class="welcome-inner"><div style="font-size:70px">☁️</div><h1>Connexion requise</h1><p>La sauvegarde en ligne n'est pas configurée. Une fois Supabase connecté, tes cartes seront stockées avec ton compte.</p><p style="font-size:13px;opacity:.8">Configure <b>supabase-config.js</b> puis recharge le site.</p></div></div>`;return}
+ if(resetMode){r.innerHTML=resetPage();return}
+ if(!authUser){r.innerHTML=authPage();return}
+ if(!state.pseudo){r.innerHTML=authPage();return}
+ let content=tab==="home"?home():tab==="courses"?coursesPage():tab==="review"?reviewPage():tab==="leader"?leaderPage():tab==="shop"?shopPage():profilePage();
+ r.innerHTML=`<div class="app">${content}<div class="footer-social">
+  <div>Créé par Gwendal Schutz ⚡️</div>
+  <a href="https://www.instagram.com/gwendal_schutz/" target="_blank" rel="noopener noreferrer">📸 @gwendal_schutz</a><br><a href="https://www.tiktok.com/@tkdvrk" target="_blank" rel="noopener noreferrer">🎵 @tkdvrk</a>
+  <small>schutz-app.fr</small>
+</div>
+<nav class="nav">
+ <button class="${tab==="home"?"active":""}" onclick="setTab('home')"><span class="ico">🏠</span>Accueil</button>
+ <button class="${tab==="courses"?"active":""}" onclick="setTab('courses')"><span class="ico">📚</span>Cours</button>
+ <button class="${tab==="review"?"active":""}" onclick="setTab('review')"><span class="ico">🧠</span>Révision</button>
+ <button class="${tab==="leader"?"active":""}" onclick="setTab('leader')"><span class="ico">🏆</span>Classement</button>
+ <button class="${tab==="shop"?"active":""}" onclick="setTab('shop')"><span class="ico">🍵</span>Boutique</button>
+ <button class="${tab==="profile"?"active":""}" onclick="setTab('profile')"><span class="ico">⚙️</span>Profil</button>
+ </nav>${modal||""}${toastMsg?toast():""}</div>`;
+ if(window.MathJax) MathJax.typesetPromise().catch(()=>{});
+ setTimeout(renderPendingQRCode,0);
+ if(tab==="review") renderReview();
+}
+function toast(){return `<div class="toast">${esc(toastMsg)}</div>`}
+
+function home(){
+ const cards=allCards(), due=cards.filter(c=>new Date(c.dueDate)<=new Date()).length;
+ return `<main class="page"><div class="home-head gradient"><div><div style="opacity:.8">Salut la légende 👋</div><strong style="font-size:21px">${esc(state.pseudo)} ⚡️</strong></div><div class="stats"><div class="stat"><b>🔥 ${state.streak}j</b><small>Streak</small></div><div class="stat"><b>🎯 ${state.score}</b><small>Points</small></div></div></div>
+ <div class="section-title">⚡️ Missions & Défis du jour</div><div class="grid2"><button class="card mission" onclick="startChronoFirst()" style="text-align:left"><div class="mi" style="background:linear-gradient(135deg,#f97316,#ec4899)">⚡</div><b>Session Flash</b><div class="sub">10 cartes chrono ⏱️</div></button><div class="card mission"><div class="mi" style="background:linear-gradient(135deg,#9333ea,#2563eb)">🎯</div><b>Défi Quizz</b><div class="sub">Test parfait 🎯</div></div></div>
+ <div class="card" style="text-align:center"><b>🎯 Cartes dues aujourd'hui</b><div style="font-size:56px;font-weight:800;color:${due?"#4f46e5":"#16a34a"}">${due}</div><button class="btn gradient2 full" onclick="setTab('review')">${due?"🚀 Démarrer la révision":"✨ Tout est clean ! (Mode Révision Libre)"}</button></div>
+ <button class="card full" style="text-align:left" onclick="openAIPrompt()"><div class="row"><div class="iconbox">✨</div><div class="grow"><b>Générateur de Prompt IA 🤖</b><div class="sub">Crée tes flashcards instantanément avec ChatGPT</div></div>›</div></button>
+ <button class="card full" style="text-align:left" onclick="setTab('shop')"><div class="row"><div class="iconbox">🍵</div><div class="grow"><b>Boutique Schutz 🍵</b><div class="sub">Commander du thé et autres produits</div></div>›</div></button>
+ </main>`;
+}
+
+function coursesPage(){return `<main class="page"><h1 class="title">Cours 📚</h1><div class="feature-grid"><button class="feature-card" onclick="openPdfManager()"><div style="font-size:30px">📄</div><b>PDF de cours</b><div class="sub">Stocker et consulter tes PDF</div></button><button class="feature-card" onclick="openExerciseSpace()"><div style="font-size:30px">🤝</div><b>Exercices communs</b><div class="sub">Espace partagé</div></button><button class="feature-card" onclick="openGrades()"><div style="font-size:30px">📈</div><b>Notes de DS</b><div class="sub">Suivre tes résultats</div></button><button class="feature-card" onclick="openNotes()"><div style="font-size:30px">📝</div><b>Pense-bête</b><div class="sub">Cahier de texte</div></button><button class="feature-card" onclick="openStudyTimer()"><div style="font-size:30px">⏱️</div><b>Timer révision</b><div class="sub">Travaille en sessions</div></button></div><div class="section-title">Mes cours</div>${state.courses.length?state.courses.map(c=>`<div class="list-item" onclick="openCourse('${c.id}')"><div class="iconbox">📖</div><div class="main"><b>${esc(c.name)}</b>${c.desc?`<div class="sub">${esc(c.desc)}</div>`:""}</div><span>›</span></div>`).join(""):`<div class="empty">Aucun cours 📚<br><span class="sub">Touche le bouton + pour créer ton premier cours.</span></div>`}<button class="btn primary full" onclick="openAddCourse()">＋ Nouveau cours</button></main>`}
+function deleteCourse(id){const c=courseById(id);if(!c)return;if(!confirm(`Supprimer le cours « ${c.name} » et tous ses decks ?`))return;state.courses=state.courses.filter(x=>x.id!==id);save();closeModal();render();showToast('Cours supprimé 🗑️')}
+function deleteDeck(id){for(const c of state.courses){if(c.decks.some(d=>d.id===id)){const d=c.decks.find(x=>x.id===id);if(!confirm(`Supprimer le deck « ${d.name} » ?`))return;c.decks=c.decks.filter(x=>x.id!==id);save();closeModal();openCourse(c.id);showToast('Deck supprimé 🗑️');return}}}
+
+function openAddCourse(){modal=formModal("Nouveau Cours 📘",`<input id="mCourseName" placeholder="Nom du cours (ex: Maths 📐)"><input id="mCourseDesc" placeholder="Description (ex: Analyse & Algèbre 🧠)">`,()=>{const n=document.getElementById("mCourseName").value.trim();if(!n)return;state.courses.push({id:uid(),name:n,desc:document.getElementById("mCourseDesc").value.trim(),decks:[]});save();closeModal();render()});render()}
+function openCourse(id){const c=courseById(id);modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>${esc(c.name)}</h2><button class="close" onclick="closeModal()">×</button></div>
+ <button class="btn primary full" onclick="startReviewTarget('course','${id}',false)">🧠 Réviser ce cours avec FSRS</button><button class="btn secondary full" style="margin-top:8px" onclick="shareCourse('${id}')">🌐 Partager le cours complet</button><button class="btn purple full" style="margin-top:8px" onclick="openMerge('${id}')">🧬 Jumeler / Fusionner deux paquets</button><button class="btn red full" style="margin-top:8px" onclick="deleteCourse('${id}')">🗑️ Supprimer ce cours</button><h3>Paquets 📦</h3>${c.decks.length?c.decks.map(d=>`<div class="list-item" onclick="openDeck('${d.id}')"><div class="main"><b>📂 ${esc(d.name)}</b></div><span class="badge">${d.cards.length} cartes 🃏</span></div>`).join(""):`<div class="empty">Aucun paquet pour l'instant 📭</div>`}<button class="btn primary full" onclick="openAddDeck('${id}')">＋ Nouveau Paquet</button></div></div>`;render()}
+function openAddDeck(cid){modal=formModal("Nouveau Paquet 📦",`<input id="mDeckName" placeholder="Nom du paquet (ex: Chapitre 1 ⚡️)">`,()=>{const n=document.getElementById("mDeckName").value.trim();if(!n)return;courseById(cid).decks.push({id:uid(),name:n,cards:[]});save();closeModal();openCourse(cid)});render()}
+function openMerge(cid){const c=courseById(cid);if(c.decks.length<2){showToast("Il faut au moins 2 paquets");return}modal=formModal("Jumeler des Decks 🔗",`<select id="mD1">${c.decks.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join("")}</select><select id="mD2">${c.decks.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join("")}</select><input id="mMerged" placeholder="Nom du nouveau paquet fusionné">`,()=>{const a=document.getElementById("mD1").value,b=document.getElementById("mD2").value,n=document.getElementById("mMerged").value.trim();if(a===b||!n)return;const d1=c.decks.find(x=>x.id===a),d2=c.decks.find(x=>x.id===b);c.decks.push({id:uid(),name:n,cards:[...d1.cards.map(cloneCard),...d2.cards.map(cloneCard)]});save();closeModal();openCourse(cid);showToast("Paquets fusionnés avec succès ! 🎉")});render()}
+
+function cloneCard(x){return {...x,id:uid(),reviewLogs:[]}}
+function openDeck(id){const d=deckById(id);modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>${esc(d.name)}</h2><button class="close" onclick="closeModal()">×</button></div>
+ <button class="btn orange full" onclick="openChrono('${id}')">⏱️ Lancer le Test Chrono</button><button class="btn primary full" style="margin-top:8px" onclick="startDeckLearning('${id}')">🎓 Apprendre ce deck en autonomie</button><button class="btn secondary full" style="margin-top:8px" onclick="startReviewTarget('deck','${id}',false)">🧠 Réviser ce chapitre avec FSRS</button><button class="btn secondary full" style="margin-top:8px" onclick="shareDeck('${id}')">🌐 Partager ce paquet avec tes potes</button><button class="btn purple full" style="margin-top:8px" onclick="openImport('${id}')">📋 Coller / Importer des cartes</button><button class="btn primary full" style="margin-top:8px" onclick="openAddCard('${id}')">＋ Ajouter une carte</button><button class="btn red full" style="margin-top:8px" onclick="deleteDeck('${id}')">🗑️ Supprimer ce deck entier</button>
+ <h3>🃏 Cartes (${d.cards.length})</h3>${d.cards.length?d.cards.map(c=>`<div class="card"><div class="math">❓ ${mathText(c.frontText)}</div>${cardMediaHtml(c,"front") }<div class="sub math">💡 ${mathText(c.backText)}</div>${cardMediaHtml(c,"back") }<div class="row" style="margin-top:8px"><button class="btn secondary small" onclick="openEditCard('${id}','${c.id}')">✏️ Modifier</button><button class="btn red small" onclick="deleteCard('${id}','${c.id}')">🗑️</button></div></div>`).join(""):`<div class="empty">Aucune carte dans ce paquet 📭</div>`}</div></div>`;render()}
+function deleteCard(did,cid){const d=deckById(did);d.cards=d.cards.filter(c=>c.id!==cid);save();openDeck(did)}
+function cardEditorBody(c){
+  const current=c||newCard("","");
+  return `<label>❓ Question / Recto</label><textarea id="mFront" placeholder="Entrez la question..." style="min-height:90px">${esc(current.frontText)}</textarea><label>💡 Réponse / Verso (avec $...$ pour LaTeX)</label><textarea id="mBack" placeholder="Entrez la réponse..." style="min-height:120px">${esc(current.backText)}</textarea><div class="card"><b>🖼️ Image sur le recto</b><input id="mFrontImage" type="file" accept="image/*"><div id="frontMediaPreview">${current.frontImageUrl?`<img class="media-preview" src="${esc(current.frontImageUrl)}">`:''}</div></div><div class="card"><b>🖼️ Image sur le verso</b><input id="mBackImage" type="file" accept="image/*"><div id="backMediaPreview">${current.backImageUrl?`<img class="media-preview" src="${esc(current.backImageUrl)}">`:''}</div></div><div class="card"><b>✏️ Dessiner un schéma (SI / bloc diagramme / croquis)</b><select id="drawSide"><option value="front">Mettre le dessin au recto</option><option value="back">Mettre le dessin au verso</option></select><div class="draw-wrap" style="margin-top:8px"><canvas id="drawingCanvas" class="draw-canvas" width="900" height="440"></canvas></div><div class="grid2" style="margin-top:8px"><button type="button" class="btn gray" onclick="clearDrawingCanvas()">🧹 Effacer</button><button type="button" class="btn secondary" onclick="undoDrawingStroke()">↩️ Annuler</button></div>${current.frontDrawingUrl?`<div class="mini" style="margin-top:8px">Schéma recto déjà présent ✅</div>`:''}${current.backDrawingUrl?`<div class="mini" style="margin-top:8px">Schéma verso déjà présent ✅</div>`:''}</div><div id="kbd"></div>`;
+}
+function openAddCard(did){const c=newCard("","");modal=formModal("Nouvelle Carte 🃏",cardEditorBody(c),async()=>{const f=document.getElementById("mFront").value.trim(),b=document.getElementById("mBack").value.trim();if(!f||!b){showToast("La question et la réponse sont obligatoires.");return}const card=newCard(f,b);const fi=document.getElementById("mFrontImage")?.files?.[0],bi=document.getElementById("mBackImage")?.files?.[0];if(fi)card.frontImageUrl=await uploadCardMedia(card.id,fi,"front-image");if(bi)card.backImageUrl=await uploadCardMedia(card.id,bi,"back-image");const drawing=await getDrawingDataUrl();const side=document.getElementById("drawSide")?.value||"front";if(drawing){const u=await uploadCardMedia(card.id,drawing,side+"-drawing");if(side==="front")card.frontDrawingUrl=u;else card.backDrawingUrl=u}deckById(did).cards.push(card);save();closeModal();openDeck(did)});render();setKeyboard("mFront");setTimeout(setupDrawingCanvas,0)}
+function openEditCard(did,cid){const d=deckById(did),c=d?.cards.find(x=>x.id===cid);if(!c)return;modal=formModal("Modifier la carte 🃏",cardEditorBody(c),async()=>{c.frontText=document.getElementById("mFront").value.trim();c.backText=document.getElementById("mBack").value.trim();if(!c.frontText||!c.backText){showToast("La question et la réponse sont obligatoires.");return}const fi=document.getElementById("mFrontImage")?.files?.[0],bi=document.getElementById("mBackImage")?.files?.[0];if(fi)c.frontImageUrl=await uploadCardMedia(c.id,fi,"front-image");if(bi)c.backImageUrl=await uploadCardMedia(c.id,bi,"back-image");const drawing=await getDrawingDataUrl();if(drawing){const side=document.getElementById("drawSide")?.value||"front";const u=await uploadCardMedia(c.id,drawing,side+"-drawing");if(side==="front")c.frontDrawingUrl=u;else c.backDrawingUrl=u}save();closeModal();openDeck(did)});render();setKeyboard("mFront");setTimeout(setupDrawingCanvas,0)}
+function cardMediaHtml(c,side){const image=side==="front"?c.frontImageUrl:c.backImageUrl;const drawing=side==="front"?c.frontDrawingUrl:c.backDrawingUrl;let h="";if(image)h+=`<img class="media-preview" src="${esc(image)}" alt="Illustration de la carte">`;if(drawing)h+=`<img class="media-preview" src="${esc(drawing)}" alt="Schéma dessiné">`;return h}
+function newCard(f,b){return {id:uid(),frontText:f,backText:b,hintText:null,cardTypeRaw:0,creationDate:new Date().toISOString(),fsrsStateRaw:0,difficulty:5,stability:0,reps:0,lapses:0,lastReviewDate:null,dueDate:new Date().toISOString(),reviewLogs:[],frontImageUrl:"",backImageUrl:"",frontDrawingUrl:"",backDrawingUrl:""}}
+async function uploadCardMedia(cardId,fileOrDataUrl,suffix){if(!supabaseClient||!authUser){showToast("Connecte-toi pour ajouter un média.");return ""}try{let blob=fileOrDataUrl;if(typeof fileOrDataUrl==="string"){blob=await (await fetch(fileOrDataUrl)).blob()}const ext=(blob.type||"image/png").includes("jpeg")?"jpg":"png";const path=`${authUser.id}/cards/${cardId}-${suffix}-${Date.now()}.${ext}`;const {error}=await supabaseClient.storage.from("card-media").upload(path,blob,{contentType:blob.type||"image/png",upsert:false,cacheControl:"31536000"});if(error){console.warn("card-media",error.message);showToast("Image non enregistrée : "+error.message);return ""}const {data}=supabaseClient.storage.from("card-media").getPublicUrl(path);return data?.publicUrl||""}catch(e){console.warn(e);showToast("Impossible d’enregistrer le média.");return ""}}
+function setupDrawingCanvas(){const canvas=document.getElementById("drawingCanvas");if(!canvas)return;const ratio=Math.max(1,Math.min(2,window.devicePixelRatio||1));const cssW=canvas.clientWidth||900,cssH=canvas.clientHeight||440;canvas.width=Math.round(cssW*ratio);canvas.height=Math.round(cssH*ratio);const ctx=canvas.getContext("2d");ctx.scale(ratio,ratio);ctx.lineCap="round";ctx.lineJoin="round";ctx.lineWidth=4;ctx.strokeStyle="#111827";ctx.fillStyle="#ffffff";ctx.fillRect(0,0,cssW,cssH);drawingState={canvas,ctx,dirty:false,cssW,cssH,lastX:0,lastY:0,snapshots:[]};canvas.onpointerdown=e=>{drawingState.drawing=true;try{drawingState.snapshots.push(ctx.getImageData(0,0,canvas.width,canvas.height))}catch{}const r=canvas.getBoundingClientRect();drawingState.lastX=e.clientX-r.left;drawingState.lastY=e.clientY-r.top;ctx.beginPath();ctx.moveTo(drawingState.lastX,drawingState.lastY);canvas.setPointerCapture?.(e.pointerId)};canvas.onpointermove=e=>{if(!drawingState?.drawing)return;const r=canvas.getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;ctx.lineTo(x,y);ctx.stroke();drawingState.lastX=x;drawingState.lastY=y;drawingState.dirty=true};canvas.onpointerup=()=>{if(drawingState)drawingState.drawing=false};canvas.onpointercancel=()=>{if(drawingState)drawingState.drawing=false}}
+function clearDrawingCanvas(){const c=drawingState?.canvas;if(!c)return;const ctx=drawingState.ctx;ctx.save();ctx.clearRect(0,0,drawingState.cssW,drawingState.cssH);ctx.fillStyle="#ffffff";ctx.fillRect(0,0,drawingState.cssW,drawingState.cssH);ctx.restore();drawingState.dirty=false;drawingState.snapshots=[]}
+function undoDrawingStroke(){if(!drawingState?.snapshots?.length)return;const img=drawingState.snapshots.pop();drawingState.ctx.putImageData(img,0,0);drawingState.dirty=drawingState.snapshots.length>0}
+async function getDrawingDataUrl(){if(!drawingState?.dirty)return "";return drawingState.canvas.toDataURL("image/png")}
+let modalSubmit=null;
+let modalSubmitting=false;
+function formModal(title,body,submit){
+  modalSubmit=submit;
+  modalSubmitting=false;
+  return `<div class="modal-back"><div class="modal"><div class="modal-head"><h2>${title}</h2><button class="close" type="button" onclick="closeModal()">×</button></div><div style="display:grid;gap:12px">${body}</div><div style="margin-top:18px;display:flex;gap:8px"><button class="btn gray grow" type="button" onclick="closeModal()">Annuler</button><button id="modalSubmitButton" class="btn primary grow" type="button" onclick="submitModalForm()">Sauvegarder</button></div></div></div>`;
+}
+async function submitModalForm(){
+  if(!modalSubmit||modalSubmitting)return;
+  modalSubmitting=true;
+  const btn=document.getElementById('modalSubmitButton');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Enregistrement…'}
+  try{await modalSubmit()}catch(e){showToast(e?.message||'Erreur')}
+  finally{
+    modalSubmitting=false;
+    const b=document.getElementById('modalSubmitButton');
+    if(b){b.disabled=false;b.textContent='Sauvegarder'}
+  }
+}
+function closeModal(){if(timer){clearInterval(timer);timer=null}if(window.studyTimerInterval){clearInterval(window.studyTimerInterval);window.studyTimerInterval=null}if(window.adminRefreshTimer){clearInterval(window.adminRefreshTimer);window.adminRefreshTimer=null}drawingState=null;qrPendingUrl="";modal=null;modalSubmit=null;modalSubmitting=false;render()}
+function renderPendingQRCode(){if(!qrPendingUrl||!window.QRCode)return;const q=document.getElementById("shareQR");if(!q)return;q.innerHTML="";try{new QRCode(q,{text:qrPendingUrl,width:260,height:260,correctLevel:QRCode.CorrectLevel.M})}catch(e){console.warn("QR",e)}}
+
+const promptText=`Agis en tant qu'expert pédagogique et professeur agrégé. À partir du cours que je vais te fournir, génère des flashcards au format strict suivant pour l'application schutz-app.fr. Utilise la syntaxe LaTeX entre symboles $ pour toutes les formules mathématiques ou scientifiques.
+
+Format exact attendu pour chaque carte :
+Q: [Question claire et précise]
+R: [Réponse détaillée avec LaTeX ($...$)]
+---
+
+Génère entre 10 et 20 cartes de haute qualité sur le cours suivant :
+[Insère ton cours ici]`;
+function openAIPrompt(){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Prompt IA 🤖</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Copie ce prompt et envoie-le à ChatGPT avec ton cours pour obtenir directement tes cartes prêtes à être importées.</p><textarea id="promptBox" readonly>${esc(promptText)}</textarea><button class="btn primary full" onclick="navigator.clipboard.writeText(promptText);showToast('Copié ! ✅')">📋 Copier le prompt</button></div></div>`;render()}
+
+function openImport(did){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Importation 🤖</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">📋 Colle ici le texte ou le code de partage reçu par un pote schutz-app.fr.</p><button class="btn secondary" onclick="pasteImport()">📋 Coller depuis le Presse-papier</button><textarea id="importText" placeholder="Q: ...\nR: ...\n---"></textarea><div id="kbd"></div><button class="btn primary full" onclick="processImport('${did}')">🚀 Générer les cartes</button></div></div>`;render();setKeyboard("importText")}
+async function pasteImport(){try{document.getElementById("importText").value=await navigator.clipboard.readText()}catch{showToast("Impossible d'accéder au presse-papier")}}
+function processImport(did){const raw=document.getElementById("importText").value;const blocks=raw.split(/(?=Q\s*:)/i).filter(x=>/^Q\s*:/i.test(x.trim()));let count=0;for(const block of blocks){const m=block.match(/^Q\s*:\s*([\s\S]*?)\s+R\s*:\s*([\s\S]*?)(?:\s*---|$)/i);if(m&&m[1].trim()&&m[2].trim()){deckById(did).cards.push(newCard(m[1].trim(),m[2].trim()));count++}}save();closeModal();openDeck(did);showToast(`${count} carte(s) ajoutée(s) avec succès ! 🎉`)}
+
+function encodeDeckShare(d){
+  const payload={v:1,name:d.name,cards:d.cards.map(c=>({frontText:c.frontText,backText:c.backText}))};
+  return LZString.compressToEncodedURIComponent(JSON.stringify(payload));
+}
+function decodeDeckShare(code){try{const p=JSON.parse(LZString.decompressFromEncodedURIComponent(code));if(!p||!Array.isArray(p.cards))throw new Error();return p}catch{return null}}
+async function shareDeck(did){
+  const d=deckById(did);
+  if(!d){showToast('Deck introuvable');return}
+  if(!supabaseClient||!authUser){showToast('Connecte-toi pour créer un lien court');return}
+  showToast('Création du lien court… ⏳');
+  const payload={v:1,name:d.name,cards:d.cards.map(c=>({frontText:c.frontText,backText:c.backText}))};
+  const {data,error}=await supabaseClient.rpc('create_deck_share',{p_name:d.name,p_payload:payload});
+  if(error||!data){console.error('create_deck_share',error);showToast('Impossible de créer le lien court');return}
+  const url=location.origin+location.pathname+'#d='+encodeURIComponent(data);
+  qrPendingUrl=url;
+  modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Partager « ${esc(d.name)} » 📱</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Ton lien court est prêt. Ton pote pourra ouvrir le deck directement depuis ce lien.</p><div style="padding:18px;text-align:center;font-size:24px;font-weight:800;word-break:break-all">${esc(url)}</div><div id="shareQR" style="display:flex;justify-content:center;padding:10px 18px"></div><button class="btn primary full" onclick="navigator.clipboard.writeText('${url}');showToast('Lien copié ! 📋')">📋 Copier le lien</button><button class="btn secondary full" style="margin-top:8px" onclick="directShareDeck('${encodeURIComponent(url)}','${encodeURIComponent(d.name)}')">📤 Partager directement à un ami</button><button class="btn gray full" style="margin-top:8px" onclick="closeModal()">Fermer</button></div></div>`;
+  render();setTimeout(()=>{const q=document.getElementById('deckQR');if(q)new QRCode(q,{text:url,width:250,height:250,correctLevel:QRCode.CorrectLevel.M})},0);
+}
+async function shareCourse(cid){const c=courseById(cid);if(!c){showToast('Cours introuvable');return}if(!supabaseClient||!authUser){showToast('Connecte-toi pour créer un lien court');return}showToast('Création du lien du cours… ⏳');const payload={v:1,name:c.name,desc:c.desc||'',decks:c.decks.map(d=>({name:d.name,cards:d.cards.map(x=>({frontText:x.frontText,backText:x.backText,frontImageUrl:x.frontImageUrl||'',backImageUrl:x.backImageUrl||'',frontDrawingUrl:x.frontDrawingUrl||'',backDrawingUrl:x.backDrawingUrl||''}))}))};const {data,error}=await supabaseClient.rpc('create_course_share',{p_name:c.name,p_payload:payload});if(error||!data){console.error('create_course_share',error);showToast('Impossible de créer le lien du cours');return}const url=location.origin+location.pathname+'#c='+encodeURIComponent(data);qrPendingUrl=url;modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Partager « ${esc(c.name)} » 📚</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Cours complet : ${c.decks.length} chapitre(s) · ${c.decks.reduce((n,d)=>n+d.cards.length,0)} cartes.</p><div style="padding:14px;text-align:center;font-size:20px;font-weight:800;word-break:break-all">${esc(url)}</div><div id="shareQR" style="display:flex;justify-content:center;padding:10px 18px"></div><button class="btn primary full" onclick="navigator.clipboard.writeText('${url}');showToast('Lien copié ! 📋')">📋 Copier le lien</button><button class="btn secondary full" style="margin-top:8px" onclick="directShareDeck('${encodeURIComponent(url)}','${encodeURIComponent(c.name)}')">📤 Partager directement</button><button class="btn gray full" style="margin-top:8px" onclick="closeModal()">Fermer</button></div></div>`;render();setTimeout(renderPendingQRCode,0)}
+
+async function directShareDeck(encodedUrl,encodedName){const url=decodeURIComponent(encodedUrl),name=decodeURIComponent(encodedName);if(navigator.share){try{await navigator.share({title:'Deck Schutz app — '+name,text:'Je te partage ce deck Schutz app 📚',url});}catch(e){}}else{await navigator.clipboard.writeText(url);showToast('Lien copié : envoie-le à ton ami 📋')}}
+
+async function handlePendingDeckShare(){
+  const hash=location.hash||'';
+  if(hash.startsWith('#deck=')){const p=decodeDeckShare(hash.slice(6));if(!p)return;sessionStorage.setItem('pendingDeckShare',JSON.stringify(p));history.replaceState(null,'',location.pathname+location.search)}
+  else if(hash.startsWith('#d=')){const code=decodeURIComponent(hash.slice(3));if(!code)return;if(!supabaseClient){showToast('Connexion cloud indisponible');return}const {data,error}=await supabaseClient.rpc('get_deck_share',{p_code:code});history.replaceState(null,'',location.pathname+location.search);if(error||!data||!Array.isArray(data.cards)){console.error('get_deck_share',error);showToast('Lien de deck invalide ou expiré');return}sessionStorage.setItem('pendingDeckShare',JSON.stringify(data))}
+  else if(hash.startsWith('#c=')){const code=decodeURIComponent(hash.slice(3));if(!code)return;if(!supabaseClient){showToast('Connexion cloud indisponible');return}const {data,error}=await supabaseClient.rpc('get_course_share',{p_code:code});history.replaceState(null,'',location.pathname+location.search);if(error||!data||!Array.isArray(data.decks)){console.error('get_course_share',error);showToast('Lien de cours invalide ou expiré');return}sessionStorage.setItem('pendingCourseShare',JSON.stringify(data))}
+  else return;
+  setTimeout(()=>{const pendingCourse=JSON.parse(sessionStorage.getItem('pendingCourseShare')||'null');const pendingDeck=JSON.parse(sessionStorage.getItem('pendingDeckShare')||'null');if(pendingCourse){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>📚 Cours reçu</h2><button class="close" onclick="sessionStorage.removeItem('pendingCourseShare');closeModal()">×</button></div><p>Tu as reçu le cours <b>${esc(pendingCourse.name||'sans nom')}</b> avec ${(pendingCourse.decks||[]).length} chapitre(s).</p><button class="btn primary full" onclick="importPendingCourseShare()">➕ Ajouter le cours complet</button><button class="btn gray full" style="margin-top:8px" onclick="sessionStorage.removeItem('pendingCourseShare');closeModal()">Annuler</button></div></div>`}else if(pendingDeck){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Paquet reçu 📚</h2><button class="close" onclick="sessionStorage.removeItem('pendingDeckShare');closeModal()">×</button></div><p>Tu as reçu le paquet <b>${esc(pendingDeck.name||'sans nom')}</b> avec ${pendingDeck.cards.length} carte(s).</p><button class="btn primary full" onclick="importPendingDeckShare()">➕ Ajouter à mes cartes</button><button class="btn gray full" style="margin-top:8px" onclick="sessionStorage.removeItem('pendingDeckShare');closeModal()">Annuler</button></div></div>`}else return;render()},250)
+}
+function importPendingCourseShare(){const p=JSON.parse(sessionStorage.getItem('pendingCourseShare')||'null');if(!p)return;let name=p.name||'Cours partagé',base=name,n=2;while(state.courses.some(x=>x.name===name))name=`${base} (${n++})`;const c={id:uid(),name,desc:p.desc||'Cours partagé',decks:(p.decks||[]).map(d=>({id:uid(),name:d.name||'Chapitre',cards:(d.cards||[]).map(x=>({...newCard(String(x.frontText||''),String(x.backText||'')),frontImageUrl:x.frontImageUrl||'',backImageUrl:x.backImageUrl||'',frontDrawingUrl:x.frontDrawingUrl||'',backDrawingUrl:x.backDrawingUrl||''}))}))};state.courses.push(c);sessionStorage.removeItem('pendingCourseShare');save();closeModal();showToast('Cours complet ajouté ! 🎉')}
+function importPendingDeckShare(){
+  const p=JSON.parse(sessionStorage.getItem('pendingDeckShare')||'null');if(!p)return;let c=state.courses[0];if(!c){c={id:uid(),name:'Paquets partagés',desc:'Paquets reçus par QR code',decks:[]};state.courses.push(c)}
+  const base=p.name||'Paquet partagé';let deckName=base,n=2;while(c.decks.some(d=>d.name===deckName)){deckName=`${base} (${n++})`}
+  c.decks.push({id:uid(),name:deckName,cards:p.cards.map(x=>newCard(String(x.frontText||''),String(x.backText||'')))});sessionStorage.removeItem('pendingDeckShare');save();closeModal();showToast('Paquet ajouté ! 🎉');
+}
+
+let deckLearning={did:null,index:0,revealed:false};
+function startDeckLearning(did){const d=deckById(did);if(!d||!d.cards.length){showToast('Ce deck ne contient aucune carte');return}deckLearning={did,index:0,revealed:false};renderDeckLearning()}
+function renderDeckLearning(){
+  const d=deckById(deckLearning.did);
+  if(!d){closeModal();return}
+  if(deckLearning.index>=d.cards.length){
+    modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><b>🎓 ${esc(d.name)}</b><button class="btn gray small" type="button" onclick="closeModal()">Fermer</button></div><div class="deck-learning-card-wrap"><div class="deck-learning-card" style="text-align:center"><div style="font-size:76px">🎉</div><h2>Deck terminé</h2><p>Tu viens de revoir les ${d.cards.length} cartes.</p><button class="btn primary full" type="button" onclick="deckLearning.index=0;deckLearning.revealed=false;renderDeckLearning()">🔁 Recommencer</button></div></div></div>`;
+    render();return;
+  }
+  const c=d.cards[deckLearning.index];
+  const grades=deckLearning.revealed?`<div class="grade-grid" style="width:min(920px,96vw);margin:8px auto 0"><button class="btn red" type="button" onclick="rateDeckLearning('again')">Oublié</button><button class="btn orange" type="button" onclick="rateDeckLearning('hard')">Moyen</button><button class="btn primary" type="button" onclick="rateDeckLearning('good')">Correct</button><button class="btn green" type="button" onclick="rateDeckLearning('easy')">Parfait</button></div>`:'';
+  modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><div><b>🎓 ${esc(d.name)}</b><div class="sub">Carte ${deckLearning.index+1} / ${d.cards.length}</div></div><button class="btn gray small" type="button" onclick="closeModal()">✕</button></div><div class="progress" style="background:rgba(255,255,255,.18)"><div style="width:${deckLearning.index/d.cards.length*100}%;background:#fff"></div></div><div class="deck-learning-card-wrap"><div id="deckLearningCard" class="deck-learning-card" style="touch-action:none" onpointerdown="deckLearningPointerDown(event)" onpointerup="deckLearningPointerUp(event)" onpointercancel="deckLearningPointerCancel()"><div class="learning-front math center">${mathText(c.frontText)}${cardMediaHtml(c,'front')}</div>${deckLearning.revealed?`<div class="learning-back math center">${mathText(c.backText)}${cardMediaHtml(c,'back')}</div>`:`<button class="btn primary full" type="button" style="margin-top:28px" onclick="event.stopPropagation();deckLearning.revealed=true;renderDeckLearning()">👀 Révéler la réponse</button>`}</div></div>${grades}<div class="deck-learning-hint">${deckLearning.revealed?'Glisse la carte ou utilise les boutons ci-dessus':'Touchez « Révéler la réponse »'}</div><div class="swipe-map"><span>⬅️ Oublié</span><span>⬇️ Moyen</span><span>⬆️ Correct</span><span>➡️ Parfait</span></div></div>`;
+  render();
+  if(window.MathJax)MathJax.typesetPromise().catch(()=>{});
+}
+function deckLearningPointerDown(e){
+  if(!deckLearning.revealed)return;
+  deckSwipeStart={x:e.clientX,y:e.clientY};
+  try{e.currentTarget.setPointerCapture?.(e.pointerId)}catch{}
+}
+function deckLearningPointerUp(e){
+  if(!deckLearning.revealed||!deckSwipeStart)return;
+  const dx=e.clientX-deckSwipeStart.x,dy=e.clientY-deckSwipeStart.y;
+  deckSwipeStart=null;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<70)return;
+  let r;if(Math.abs(dx)>Math.abs(dy))r=dx>0?'easy':'again';else r=dy<0?'good':'hard';
+  rateDeckLearning(r);
+}
+function deckLearningPointerCancel(){deckSwipeStart=null}
+function rateDeckLearning(r){const d=deckById(deckLearning.did),c=d?.cards?.[deckLearning.index];if(!c)return;Object.assign(c,fsrsEvaluate(c,r));c.reps++;if(r==='again')c.lapses++;c.reviewLogs.push({date:new Date().toISOString(),rating:r});save();deckLearning.index++;deckLearning.revealed=false;renderDeckLearning()}
+
+const TEA_SUPPLEMENT=0.20;
+async function loadShopProducts(){if(!supabaseClient)return;try{const {data,error}=await supabaseClient.from('shop_products').select('id,name,description,price,emoji,active').eq('active',true).order('created_at',{ascending:true});if(!error&&Array.isArray(data)&&data.length){SHOP_PRODUCTS=data.map(p=>({id:p.id,name:p.name,desc:p.description||'',price:Number(p.price)||0,emoji:p.emoji||'🛍️'}));if(tab==='shop')render()}}catch(e){console.warn('Produits boutique',e)}}
+async function adminListProducts(){const {data,error}=await adminRpcSafe('admin_list_shop_products');return {data,error}}
+function adminProductCard(p){return `<div class="card"><div class="admin-product"><div class="iconbox">${esc(p.emoji||'🛍️')}</div><div class="main"><b>${esc(p.name)}</b><div class="sub">${esc(p.description||'')} · <b>${Number(p.price||0).toFixed(2)} €</b></div></div><button class="btn red small" onclick="adminDeleteProduct('${esc(p.id)}')">🗑️</button></div><button class="btn secondary full small" style="margin-top:8px" onclick="adminEditProduct('${esc(p.id)}')">✏️ Modifier</button></div>`}
+async function openAdminProducts(){const r=await adminListProducts();if(r.error){showToast('Produits : '+r.error.message);return}const products=r.data||[];modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🛍️ Boutique — produits</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Ajoute, modifie ou retire des articles visibles dans la boutique.</p><div id="adminProductList">${products.map(adminProductCard).join('')||'<div class="empty">Aucun produit.</div>'}</div><button class="btn primary full" style="margin-top:8px" onclick="adminNewProduct()">＋ Ajouter un article</button></div></div>`;render()}
+function adminNewProduct(){modal=formModal('Ajouter un article 🛍️','<input id="pName" placeholder="Nom du produit"><input id="pDesc" placeholder="Description" style="margin-top:8px"><input id="pPrice" type="number" min="0" step="0.01" placeholder="Prix (€)" style="margin-top:8px"><input id="pEmoji" placeholder="Emoji (ex : ☕)" value="🛍️" style="margin-top:8px">',async()=>{const name=document.getElementById('pName').value.trim(),description=document.getElementById('pDesc').value.trim(),price=Number(document.getElementById('pPrice').value),emoji=document.getElementById('pEmoji').value.trim()||'🛍️';if(!name||!Number.isFinite(price)||price<0){showToast('Nom et prix valides obligatoires.');return}const r=await adminRpcSafe('admin_add_shop_product',{p_name:name,p_description:description,p_price:price,p_emoji:emoji});if(r.error){showToast('Produit : '+r.error.message);return}await loadShopProducts();showToast('Article ajouté ✅');openAdminProducts()});render()}
+async function adminEditProduct(id){const r=await adminListProducts();const p=(r.data||[]).find(x=>x.id===id);if(!p)return;modal=formModal('Modifier un article 🛍️',`<input id="pName" value="${esc(p.name)}" placeholder="Nom du produit"><input id="pDesc" value="${esc(p.description||'')}" placeholder="Description" style="margin-top:8px"><input id="pPrice" type="number" min="0" step="0.01" value="${Number(p.price||0).toFixed(2)}" placeholder="Prix (€)" style="margin-top:8px"><input id="pEmoji" value="${esc(p.emoji||'🛍️')}" placeholder="Emoji" style="margin-top:8px">`,async()=>{const name=document.getElementById('pName').value.trim(),description=document.getElementById('pDesc').value.trim(),price=Number(document.getElementById('pPrice').value),emoji=document.getElementById('pEmoji').value.trim()||'🛍️';const x=await adminRpcSafe('admin_update_shop_product',{p_id:id,p_name:name,p_description:description,p_price:price,p_emoji:emoji,p_active:true});if(x.error){showToast('Produit : '+x.error.message);return}await loadShopProducts();showToast('Article modifié ✅');openAdminProducts()});render()}
+async function adminDeleteProduct(id){if(!confirm('Retirer cet article de la boutique ?'))return;const r=await adminRpcSafe('admin_delete_shop_product',{p_id:id});if(r.error){showToast('Produit : '+r.error.message);return}await loadShopProducts();showToast('Article retiré ✅');openAdminProducts()}
+
+function loyaltyCardHtml(){const n=Math.max(0,Math.min(6,Number(state.loyaltyStamps)||0));const pct=(n/6)*100;const left=Math.max(0,6-n);return `<div class="card" style="border:2px solid #d97706;background:linear-gradient(135deg,#fff7ed,#fffbeb);overflow:hidden"><div class="row between"><div><h3 style="margin:0">🍵 Carte fidélité Schutz Tea</h3><div class="sub">${n===6?'Carte complète 🎉':'Encore '+left+' tampon'+(left>1?'s':'')+' pour la carte complète'}</div></div><b style="font-size:20px">${n}/6</b></div><div class="loyalty-progress" style="margin-top:12px"><div style="width:${pct}%"></div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:14px">${[0,1,2,3,4,5].map(i=>`<div class="stamp ${i<n?'on':''}" style="aspect-ratio:1;border-radius:50%;border:2px dashed #d97706;display:flex;align-items:center;justify-content:center;font-size:26px;background:${i<n?'#fed7aa':'white'}">${i<n?'🍵':'＋'}</div>`).join('')}</div><p class="sub" style="margin-bottom:0">Les tampons sont ajoutés manuellement par l’administrateur.</p></div>`}
+function shopPage(){const total=shopCart.reduce((s,i)=>s+i.price*i.qty,0);return `<main class="page"><h1 class="title">Boutique 🍵</h1>${loyaltyCardHtml()}<div class="card"><b>📦 Mes commandes</b><div id="myOrders">Chargement…</div></div><div class="card"><b>⭐ Avis sur les commandes</b><p class="sub">Les avis publiés par les clients sont visibles ici.</p><div id="publicReviews">Chargement…</div></div><div class="card gradient shop-hero"><h2 style="margin-top:0">Schutz Tea 🇹🇷</h2><p style="opacity:.9">Le thé coûte <b>0,20 €</b> et le café <b>0,50 €</b> par unité. Choisis ta boisson et la quantité.</p><p style="opacity:.9">Paiement : tu envoies la commande, puis tu es redirigé vers PayPal. Le paiement et la validation sont vérifiés manuellement par l’administrateur.</p></div><div class="section-title">Nos boissons ☕🫖</div>${SHOP_PRODUCTS.map(p=>`<div class="list-item"><div class="iconbox">${p.emoji}</div><div class="main"><b>${esc(p.name)}</b><div class="sub">${esc(p.desc)}</div><b>${p.price.toFixed(2)} €</b></div><button class="btn primary small" onclick="addToCart('${p.id}')">＋</button></div>`).join('')}<div class="section-title">Ta commande</div>${shopCart.length?shopCart.map(i=>`<div class="list-item"><div class="main"><b>${esc(i.name)}</b><div class="sub">${i.price.toFixed(2)} € × ${i.qty}</div></div><button class="btn gray small" onclick="changeCart('${i.id}',-1)">−</button><b>${i.qty}</b><button class="btn gray small" onclick="changeCart('${i.id}',1)">＋</button></div>`).join(''):`<div class="empty">Ton panier est vide 🛒</div>`}<div class="card"><div class="row between"><b>Total</b><b>${total.toFixed(2)} €</b></div><button class="btn primary full" style="margin-top:12px" onclick="openOrderForm()" ${shopCart.length?'':'disabled'}>📩 Commander & payer avec PayPal</button><p class="sub" style="margin-bottom:0;margin-top:8px">Paiement PayPal : <b>gwschutz88@gmail.com</b></p></div></main>`}
+const PAYPAL_LINK='https://www.paypal.me/gschutz88';
+async function loadMyOrders(){
+  const box=document.getElementById('myOrders');
+  if(!box)return;
+  box.innerHTML='<div class="sub">Chargement…</div>';
+  try{
+    const session=await supabaseClient.auth.getSession();
+    const user=authUser || session?.data?.session?.user || null;
+    if(!user){box.innerHTML='<div class="auth-error">Connecte-toi pour voir tes commandes.</div>';return}
+    const r=await Promise.race([
+      supabaseClient.rpc('get_my_shop_orders'),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('Chargement des commandes trop long')),10000))
+    ]);
+    if(r.error){box.innerHTML='<div class="auth-error"><b>Impossible de charger tes commandes.</b><br>'+esc(r.error.message||'Erreur inconnue')+'</div>';return}
+    const seen=new Set();
+    const orders=(Array.isArray(r.data)?r.data:[]).filter(o=>{const id=String(o.id||'');if(!id||seen.has(id))return false;seen.add(id);return true});
+    if(!orders.length){box.innerHTML='<div class="empty">Aucune commande.</div>';return}
+    box.innerHTML=orders.map(o=>`<div class="card" style="border:1px solid #e5e7eb"><div class="row between"><div><b>📦 Commande #${esc(String(o.id).slice(0,8))}</b><div class="sub">${o.created_at?new Date(o.created_at).toLocaleString('fr-FR'):'—'} · ${Number(o.total||0).toFixed(2)} €</div></div><span class="pill">${orderStatusLabel(o.status)}</span></div><div style="margin-top:12px">${orderProgressHtml(o.status)}</div><div id="order-history-${esc(o.id)}" class="sub" style="margin-top:12px">Chargement de l’historique…</div><div id="order-review-${esc(o.id)}" style="margin-top:10px"></div></div>`).join('');
+    await Promise.all(orders.map(o=>Promise.all([loadOrderHistory(o.id),loadOrderReview(o.id,o.status)])));
+  }catch(e){box.innerHTML='<div class="auth-error">Erreur commandes : '+esc(e?.message||String(e))+'</div>'}
+}
+function orderProgressHtml(status){const steps=[['awaiting_payment','💳','Paiement'],['paid','💰','Payée'],['preparing','📦','Préparation'],['shipped','🚚','Expédiée'],['delivered','✅','Livrée']];const idx=steps.findIndex(x=>x[0]===status);if(status==='cancelled')return '<div class="auth-error">❌ Commande annulée</div>';return `<div style="display:flex;gap:4px;align-items:flex-start;overflow:auto">${steps.map((x,i)=>`<div style="flex:1;min-width:72px;text-align:center;opacity:${i<=idx?1:.35}"><div style="font-size:25px">${x[1]}</div><div class="mini"><b>${x[2]}</b></div><div style="height:5px;margin-top:6px;border-radius:99px;background:${i<=idx?'#4f46e5':'#e5e7eb'}"></div></div>`).join('')}</div>`}
+async function loadOrderHistory(id){
+  const box=document.getElementById('order-history-'+id);if(!box)return;
+  try{
+    const r=await Promise.race([supabaseClient.rpc('get_my_order_history',{p_order_id:id}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),8000))]);
+    if(r.error){box.innerHTML='<span>Historique indisponible : '+esc(r.error.message||'erreur')+'</span>';return}
+    box.innerHTML=(r.data||[]).map(h=>`<div style="margin:4px 0">• ${orderStatusLabel(h.status)} — ${new Date(h.created_at).toLocaleString('fr-FR')}</div>`).join('')||'Aucun historique.';
+  }catch(e){box.textContent='Historique indisponible pour le moment.'}
+}
+async function loadOrderReview(id,status){
+  const box=document.getElementById('order-review-'+id);if(!box)return;
+  try{
+    const r=await Promise.race([supabaseClient.rpc('get_my_order_review',{p_order_id:id}),new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),8000))]);
+    if(r.error){box.innerHTML='<div class="sub">Avis indisponible pour cette commande.</div>';return}
+    const data=Array.isArray(r.data)?r.data[0]:r.data;
+    if(data){box.innerHTML=`<div class="card" style="background:#f9fafb"><b>⭐ Avis</b><div>${'⭐'.repeat(Number(data.rating)||0)} <span class="sub">par ${esc(data.pseudo||'Client')}</span></div>${data.comment?`<div class="sub" style="margin-top:5px">${esc(data.comment)}</div>`:''}</div>`;return}
+    if(status==='delivered')box.innerHTML=`<button class="btn secondary full" onclick="openOrderReview('${id}')">⭐ Noter cette commande</button>`;
+  }catch(e){box.innerHTML='<div class="sub">Avis indisponible pour le moment.</div>'}
+}
+function openOrderReview(id){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>⭐ Noter ma commande</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Ton avis sera visible par les autres utilisateurs.</p><select id="reviewRating"><option value="5">⭐⭐⭐⭐⭐</option><option value="4">⭐⭐⭐⭐</option><option value="3">⭐⭐⭐</option><option value="2">⭐⭐</option><option value="1">⭐</option></select><textarea id="reviewComment" placeholder="Ton avis (facultatif)" style="margin-top:8px;min-height:100px"></textarea><button class="btn primary full" style="margin-top:8px" onclick="submitOrderReview('${id}')">Publier l'avis</button></div></div>`;render()}
+async function submitOrderReview(id){const rating=Number(document.getElementById('reviewRating')?.value||5),comment=document.getElementById('reviewComment')?.value.trim()||'';const r=await supabaseClient.rpc('submit_my_order_review',{p_order_id:id,p_rating:rating,p_comment:comment});if(r.error){showToast('Avis : '+r.error.message);return}closeModal();showToast('Avis publié ⭐');loadMyOrders();loadPublicReviews()}
+async function loadPublicReviews(){
+  const box=document.getElementById('publicReviews');
+  if(!box)return;
+  try{
+    const r=await Promise.race([supabaseClient.rpc('get_public_shop_reviews'),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Chargement des avis trop long')),10000))]);
+    if(r.error){box.innerHTML='<div class="auth-error">Avis indisponibles : '+esc(r.error.message||'Erreur inconnue')+'</div>';return}
+    box.innerHTML=(r.data||[]).map(x=>`<div class="list-item"><div class="main"><b>${'⭐'.repeat(Number(x.rating)||0)} · ${esc(x.pseudo||'Client')}</b>${x.comment?`<div class="sub">${esc(x.comment)}</div>`:''}<div class="mini">${x.created_at?new Date(x.created_at).toLocaleDateString('fr-FR'):'—'}</div></div></div>`).join('')||'<div class="empty">Aucun avis pour le moment.</div>'
+  }catch(e){box.innerHTML='<div class="auth-error">Avis indisponibles : '+esc(e?.message||String(e))+'</div>'}
+}
+function openPayPalSetup(){window.location.href=PAYPAL_LINK}
+
+function addToCart(id){const p=SHOP_PRODUCTS.find(x=>x.id===id);if(!p)return;const i=shopCart.find(x=>x.id===id);if(i)i.qty++;else shopCart.push({...p,qty:1});render()}
+function changeCart(id,delta){const i=shopCart.find(x=>x.id===id);if(!i)return;i.qty+=delta;if(i.qty<=0)shopCart=shopCart.filter(x=>x.id!==id);render()}
+function openOrderForm(){const total=shopCart.reduce((s,i)=>s+i.price*i.qty,0);modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Finaliser la commande 🍵</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">${shopCart.reduce((s,i)=>s+i.qty,0)} article(s) — ${total.toFixed(2)} €</p><input id="orderName" placeholder="Nom / prénom"><input id="orderEmail" type="email" value="${esc(authUser?.email||'')}" placeholder="Email"><input id="orderAddress" placeholder="Adresse de livraison"><input id="orderCity" placeholder="Code postal + ville"><textarea id="orderNote" placeholder="Message ou précision (facultatif)"></textarea><button class="btn primary full" onclick="submitOrder()">📩 Envoyer la commande & ouvrir PayPal</button><p class="sub">La commande est d'abord envoyée à l'administrateur, puis PayPal s'ouvre.</p></div></div>`;render()}
+async function submitOrder(){
+  if(orderSubmitting){showToast('Commande déjà en cours d’envoi… ⏳');return}
+  const name=document.getElementById('orderName')?.value.trim()||'',email=document.getElementById('orderEmail')?.value.trim()||'',address=document.getElementById('orderAddress')?.value.trim()||'',city=document.getElementById('orderCity')?.value.trim()||'',note=document.getElementById('orderNote')?.value.trim()||'';
+  if(!name||!email||!address||!city){showToast('Remplis les informations de livraison.');return}
+  if(!shopCart.length){showToast('Ton panier est vide.');return}
+  orderSubmitting=true;
+  const btn=[...document.querySelectorAll('button')].find(b=>String(b.getAttribute('onclick')||'').includes('submitOrder()'));
+  if(btn){btn.disabled=true;btn.textContent='⏳ Envoi en cours…'}
+  const items=shopCart.map(i=>({name:i.name,qty:i.qty,unitPrice:Number(i.price)||0,total:(Number(i.price)||0)*i.qty})),total=items.reduce((s,i)=>s+i.total,0);
+  try{
+    const ins=await supabaseClient.from('shop_orders').insert({user_id:authUser.id,pseudo:state.pseudo||'',customer_name:name,customer_email:email,address,city,items,total,note,status:'awaiting_payment'}).select('id').single();
+    if(ins.error)throw new Error('Impossible d’enregistrer la commande : '+ins.error.message);
+    const orderId=ins.data.id;
+    const res=await fetch('/.netlify/functions/send-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,address,city,note,items,total,pseudo:state.pseudo,orderId})});
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(data.error||'Impossible d’envoyer la commande.');
+    shopCart=[];closeModal();showToast('Commande envoyée ! Ouverture de PayPal… 🅿️');setTimeout(()=>{window.location.href=PAYPAL_LINK},350);
+  }catch(e){showToast(e.message||'Erreur d’envoi')}
+  finally{orderSubmitting=false}
+}
+function startChronoFirst(){const d=state.courses.flatMap(c=>c.decks).find(x=>Array.isArray(x.cards)&&x.cards.length>0);if(!d){showToast("Aucune carte disponible 📭");return}openChrono(d.id)}
+let quiz={};
+function openChrono(did){const d=deckById(did);if(!d||!d.cards.length){showToast("Ce paquet ne contient aucune carte");return}quiz={did,index:0,score:0,selected:null,time:15,finished:false,options:null};renderChrono()}
+function renderChrono(){
+  const d=deckById(quiz.did), cards=d.cards;
+  if(quiz.finished){
+    modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Test Chrono ⏱️⚡️</h2><button class="close" onclick="closeModal()">×</button></div><div style="text-align:center;padding:30px"><div style="font-size:80px">🏆</div><h2>Session Chrono Terminée ! 🎉</h2><p>Ton score : ${quiz.score} / ${cards.length} 🎯</p><p class="success"><b>+${quiz.score*10} points enregistrés ! 🚀</b></p><button class="btn primary" onclick="closeModal()">Terminer 🚀</button></div></div></div>`;
+    render();
+    return;
+  }
+  const options=Array.isArray(quiz.options)?quiz.options:[];
+  const optionHtml=options.map(o=>`<button class="option ${quiz.selected?(o===cards[quiz.index].backText?'correct':o===quiz.selected?'wrong':''):''}" onclick="answerQuiz('${encodeURIComponent(o)}')" ${quiz.selected?'disabled':''}><span class="math">${mathText(o)}</span></button>`).join('');
+  modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Test Chrono ⏱️⚡️</h2><button class="close" onclick="clearInterval(timer);timer=null;closeModal()">×</button></div><div class="row between"><b class="${quiz.time<=5?'danger':'orange'}">⏱️ Chrono : ${quiz.time}s</b><b class="muted">🎯 Q ${quiz.index+1} / ${cards.length}</b></div><div class="progress" style="margin:12px 0"><div style="width:${quiz.index/cards.length*100}%"></div></div><div class="card math center" style="min-height:90px">${mathText(cards[quiz.index].frontText)}</div>${optionHtml||'<div class="empty">Préparation de la question… ⏳</div>'}</div></div>`;
+  render();
+  if(!quiz.finished&&!quiz.options)setupQuiz();
+}
+function setupQuiz(){const cards=deckById(quiz.did).cards,current=cards[quiz.index];const inc=cards.filter(x=>x.id!==current.id).map(x=>x.backText).sort(()=>Math.random()-.5).slice(0,3);quiz.options=[...inc,current.backText].sort(()=>Math.random()-.5);quiz.time=15;renderChrono();if(timer)clearInterval(timer);timer=setInterval(()=>{if(quiz.selected||quiz.finished)return;if(quiz.time>0){quiz.time--;renderChrono()}else{answerQuiz(encodeURIComponent("TIMEOUT_WRONG"))}},1000)}
+function answerQuiz(encoded){if(quiz.selected)return;const option=decodeURIComponent(encoded),correct=deckById(quiz.did).cards[quiz.index].backText;quiz.selected=option;if(option===correct)quiz.score++;renderChrono();setTimeout(()=>{if(quiz.index+1<deckById(quiz.did).cards.length){quiz.index++;quiz.selected=null;quiz.options=null;setupQuiz()}else{quiz.finished=true;state.score+=quiz.score*10;save();renderChrono();clearInterval(timer);timer=null}},800)}
+
+function reviewPage(){const due=getReviewCards(true).length;return `<main class="page"><h1 class="title">Révision FSRS 🧠</h1><div class="card gradient2"><b>Révision ciblée</b><p style="opacity:.9;margin-bottom:0">Choisis une matière ou un chapitre pour ne réviser que ce périmètre. Les cartes restent planifiées par FSRS.</p></div><div class="card"><div class="row between"><div><b>🎯 Révision du jour</b><div class="sub">Toutes les cartes actuellement dues</div></div><span class="badge">${due} dues</span></div><button class="btn primary full" style="margin-top:10px" onclick="startReviewTarget('all',null,false)">🚀 Réviser les cartes dues</button></div><button class="card full" style="text-align:left" onclick="openReviewScope()"><div class="row"><div class="iconbox">🎯</div><div class="grow"><b>Choisir un cours / chapitre</b><div class="sub">Maths, SI, physique, chapitre 3…</div></div>›</div></button><button class="card full" style="text-align:left" onclick="startReviewTarget('all',null,true)"><div class="row"><div class="iconbox">🔥</div><div class="grow"><b>Révision libre</b><div class="sub">Toutes les cartes, sans filtre de date</div></div>›</div></button>${review.active?`<div id="reviewArea"></div>`:''}</main>`}
+let review={free:false,index:0,revealed:false,scope:"all",scopeId:null,active:false};
+function getReviewBaseCards(){let cards=allCards();if(review.scope==="course"){const c=courseById(review.scopeId);cards=c?c.decks.flatMap(d=>d.cards):[]}else if(review.scope==="deck"){const d=deckById(review.scopeId);cards=d?[...d.cards]:[]}return cards}
+function getReviewCards(dueOnly=false){const cards=getReviewBaseCards();return dueOnly?cards.filter(c=>new Date(c.dueDate)<=new Date()):cards}
+function openReviewScope(){const courseHtml=state.courses.map(c=>`<button class="review-scope-item" onclick="startReviewTarget('course','${c.id}',false)"><b>📖 ${esc(c.name)}</b><div class="sub">Réviser ce cours · ${c.decks.reduce((n,d)=>n+d.cards.length,0)} cartes</div></button>${c.decks.map(d=>`<button class="review-scope-item deck" onclick="startReviewTarget('deck','${d.id}',false)"><b>📂 ${esc(d.name)}</b><div class="sub">Réviser ce chapitre · ${d.cards.length} cartes</div></button>`).join('')}`).join('');modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🎯 Choisir le périmètre</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Le bouton FSRS ne touchera qu’aux cartes du périmètre choisi.</p><div class="review-scope-grid"><button class="review-scope-item" onclick="startReviewTarget('all',null,false)"><b>🌍 Tous les cours</b><div class="sub">Cartes dues dans toute l’application</div></button>${courseHtml||'<div class="empty">Crée d’abord un cours et un paquet.</div>'}</div></div></div>`;render()}
+function startReviewTarget(scope,scopeId,free){review={free,index:0,revealed:false,scope,scopeId,active:true};const count=getReviewCards(!free).length;if(!count&&!free){review.active=false;modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🎉 Rien à réviser ici</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Aucune carte de ce périmètre n’est due pour le moment.</p><button class="btn primary full" onclick="closeModal();startReviewTarget('${scope}','${scopeId||''}',true)">🔥 Réviser quand même toutes les cartes</button></div></div>`;render();return}tab="review";modal=null;render()}
+function renderReview(){if(!review.active)return;const box=document.getElementById("reviewArea");if(!box)return;const cards=review.free?getReviewCards(false):getReviewCards(true);if(review.index>=cards.length){box.innerHTML=`<div class="card" style="text-align:center"><div style="font-size:70px">🎉</div><h2>Session terminée !</h2><p class="sub">${review.free?'Toutes les cartes du périmètre ont été parcourues.':'Les cartes dues de ce périmètre sont à jour.'}</p><button class="btn primary" onclick="review={free:false,index:0,revealed:false,scope:'all',scopeId:null,active:false};render()">↩️ Retour aux choix</button></div>`;return}const c=cards[review.index];box.innerHTML=`<div class="card"><div class="progress"><div style="width:${review.index/cards.length*100}%"></div></div><p class="sub">🎯 Carte ${review.index+1} / ${cards.length} ${review.free?'· Libre':''}</p><div class="card math center" style="min-height:120px">${mathText(c.frontText)}${cardMediaHtml(c,"front")}</div>${review.revealed?`<div class="card math center" style="min-height:120px;background:#dcfce7">${mathText(c.backText)}${cardMediaHtml(c,"back")}</div><div class="grade-grid">${[['again','Oublié','red'],['hard','Moyen','orange'],['good','Correct','primary'],['easy','Parfait','green']].map(x=>`<button class="btn ${x[2]}" onclick="rateCard('${x[0]}')">${x[1]}</button>`).join('')}</div>`:`<button class="btn primary full" onclick="review.revealed=true;renderReview()">👀 Révéler la réponse</button>`}</div>`;if(window.MathJax)MathJax.typesetPromise().catch(()=>{})}
+function recallS(d,s,r,rt,w){const hp=rt===2?w[15]:1,eb=rt===4?w[16]:1;return Math.max(.1,s*(1+Math.exp(w[8])*(11-d)*Math.pow(s,-w[9])*(Math.exp((1-r)*w[10])-1)*hp*eb))}
+function forgetS(d,s,r,w){return Math.min(s,Math.max(.1,w[11]*Math.pow(d,-w[12])*(Math.pow(s+1,w[13])-1)*Math.exp((1-r)*w[14])))}
+function fsrsEvaluate(c,r){
+  const w=[.4,.6,2.4,5.8,4.93,.94,.86,.01,1.49,.14,.94,2.18,.05,.34,1.26,.29,2.61];
+  const rating={again:1,hard:2,good:3,easy:4}[r];
+  const stateRaw=Number(c.fsrsStateRaw)||0;
+  const last=c.lastReviewDate?new Date(c.lastReviewDate):null;
+  const elapsed=last&&!Number.isNaN(last.getTime())?Math.max(0,(Date.now()-last.getTime())/86400000):0;
+  const stability=Math.max(.1,Number(c.stability)||0);
+  const retr=stability>0?Math.pow(1+elapsed/(9*stability),-1):0;
+  let d=Math.min(Math.max(Number(c.difficulty)||5,1),10),s=stability,ns=stateRaw;
+  const initD=Math.min(Math.max(w[4]-(rating-3)*w[5],1),10);
+  const calcD=(cur,rt)=>Math.min(Math.max(cur-w[6]*(rt-3)+w[7]*(initD-(cur-w[6]*(rt-3))),1),10);
+  d=calcD(d,rating);
+  const initS=Math.max(.1,w[rating-1]);
+  if(stateRaw===0){s=initS;ns=rating===1?1:2}
+  else if(stateRaw===1||stateRaw===3){if(rating===1){s=initS;ns=3}else{s=recallS(d,s,retr,rating,w);ns=2}}
+  else if(rating===1){s=forgetS(d,s,retr,w);ns=3}
+  else{s=recallS(d,s,retr,rating,w);ns=2}
+  const interval=(ns===1||ns===3)?(rating===1?5/1440:15/1440):Math.max(1,s*(Math.pow(.9,-1)-1)*9);
+  return {difficulty:d,stability:s,fsrsStateRaw:ns,lastReviewDate:new Date().toISOString(),dueDate:new Date(Date.now()+interval*86400000).toISOString()};
+}
+function rateCard(r){const cards=review.free?getReviewCards(false):getReviewCards(true),c=cards[review.index];if(!c)return;const result=fsrsEvaluate(c,r);Object.assign(c,result);c.reps++;if(r==="again")c.lapses++;c.reviewLogs.push({date:new Date().toISOString(),rating:r});if(!review.free)state.score+=10;save();review.index++;review.revealed=false;render()}
+function leaderPage(){
+  const f=[...remoteLeaderboard].sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0));
+  const myIndex=f.findIndex(x=>String(x.pseudo||'').toLowerCase()===String(state.pseudo||'').toLowerCase());
+  return `<main class="page"><h1 class="title">Classement 🏆</h1><div class="card"><b>🌍 Classement schutz-app.fr</b><p class="sub">${esc(remoteStatusText())}</p>${f.length?f.map((x,i)=>`<div class="list-item"><span class="podium">${["🥇","🥈","🥉"][i]||"🏅"}</span>${x.avatar_url?`<img src="${esc(x.avatar_url)}" alt="Avatar" style="width:48px;height:48px;border-radius:50%;object-fit:cover;flex:0 0 48px">`:`<div style="width:48px;height:48px;border-radius:50%;background:#eef2ff;display:grid;place-items:center;font-size:24px;flex:0 0 48px">👤</div>`}<div class="main"><b>${esc(x.pseudo||'Sans pseudo')}${String(x.pseudo||'').toLowerCase()===String(state.pseudo||'').toLowerCase()?" (Toi) ⚡️":""}</b><div class="sub">🔥 Streak : ${Number(x.streak)||1} jours</div></div><b>${Number(x.score)||0} pts 🎯</b></div>`).join(''):`<div class="empty">Aucun joueur synchronisé pour l'instant 📭</div>`}</div><div class="card"><b>👤 Ton classement</b><p class="sub">${myIndex>=0?`Ton pseudo « ${esc(state.pseudo)} » est présent dans le classement partagé.`:`Ton score sera publié avec ton pseudo.`}</p><div class="list-item"><span class="podium">⚡️</span><div class="main"><b>${esc(state.pseudo)}</b><div class="sub">🔥 Streak : ${state.streak} jours</div></div><b>${state.score} pts 🎯</b></div><button class="btn secondary full" onclick="refreshLeaderboard()">🔄 Actualiser le classement</button></div></main>`;
+}
+async function openEmailChange(){
+  if(!authUser){showToast("Connexion requise.");return}
+  modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Modifier mon e-mail ✉️</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Un e-mail de confirmation peut être envoyé à la nouvelle adresse selon les réglages de Supabase.</p><input id="newAccountEmail" type="email" value="${esc(authUser.email||"")}" placeholder="Nouvelle adresse e-mail"><button class="btn primary full" style="margin-top:10px" onclick="saveEmailChange()">Enregistrer la nouvelle adresse</button></div></div>`;render();
+}
+async function saveEmailChange(){
+  const email=document.getElementById('newAccountEmail')?.value.trim().toLowerCase();
+  if(!email || !email.includes('@')){showToast('Entre une adresse e-mail valide.');return}
+  if(email===String(authUser?.email||'').toLowerCase()){showToast('Cette adresse est déjà utilisée.');return}
+  const {error}=await supabaseClient.auth.updateUser({email});
+  if(error){showToast('E-mail : '+error.message);return}
+  closeModal();
+  showToast('Demande de changement envoyée. Vérifie le nouvel e-mail ✉️');
+}
+async function saveReminderSettings(){
+  const enabled=!!document.getElementById('dailyReminderEnabled')?.checked;
+  const time=document.getElementById('dailyReminderTime')?.value||'18:00';
+  const timezone=Intl.DateTimeFormat().resolvedOptions().timeZone||'Europe/Paris';
+  state.dailyReminder={enabled,time,timezone,lastSentKey:state.dailyReminder?.lastSentKey||''};
+  save();
+  if(supabaseClient && authUser){
+    const r=await supabaseClient.rpc('save_reminder_settings',{p_enabled:enabled,p_time:time,p_timezone:timezone});
+    if(r.error) console.warn('Rappel Supabase:',r.error.message);
+  }
+  await cloudSaveAll();
+  showToast(enabled?`Rappel enregistré pour ${time} (${timezone}) ✅`:'Rappel désactivé ✅');
+  render();
+}
+
+function profilePage(){const cards=allCards(),admin=String(authUser?.email||'').toLowerCase()==='gwschutz88@gmail.com';return `<main class="page"><h1 class="title">Profil ⚙️</h1><div class="card"><b>👤 Mon Compte</b><p class="sub">${esc(authUser?.email||"")}</p><div style="display:flex;justify-content:center;margin:14px 0">${state.avatarUrl?`<img src="${esc(state.avatarUrl)}" alt="Ma photo de profil" style="width:110px;height:110px;border-radius:50%;object-fit:cover;box-shadow:0 4px 16px rgba(0,0,0,.15)">`:`<div style="width:110px;height:110px;border-radius:50%;background:#eef2ff;display:grid;place-items:center;font-size:54px">👤</div>`}</div><input id="profileAvatarFile" type="file" accept="image/*"><button class="btn secondary full" style="margin-top:8px" onclick="uploadProfileAvatar()">📸 Changer ma photo</button>${state.avatarUrl?`<button class="btn gray full" style="margin-top:8px" onclick="removeProfileAvatar()">🗑️ Supprimer ma photo</button>`:''}<input id="profilePseudo" value="${esc(state.pseudo)}" style="margin-top:12px"><p>Score 🎯 <b>${state.score} pts</b> · Streak 🔥 <b>${state.streak} jours</b></p><button class="btn primary" onclick="saveProfile()">💾 Sauvegarder le pseudo</button><button class="btn secondary full" style="margin-top:8px" onclick="openEmailChange()">✉️ Modifier mon adresse e-mail</button></div><div class="card" style="border:2px solid #d97706;background:linear-gradient(135deg,#fff7ed,#fffbeb)"><b>🍵 Carte de fidélité Schutz Tea</b><p class="sub">${state.loyaltyStamps}/6 tampons · donnés manuellement par l’administrateur</p><div class="row" style="gap:4px;justify-content:center">${[0,1,2,3,4,5].map(i=>`<span class="stamp ${i<Number(state.loyaltyStamps||0)?'on':''}">🍵</span>`).join('')}</div></div><div class="card"><b>🔔 Rappel quotidien</b><p class="sub">Reçois un e-mail quotidien pour penser à travailler.</p><label><input type="checkbox" id="dailyReminderEnabled" style="width:auto" ${state.dailyReminder?.enabled?'checked':''}> Activer le rappel</label><input id="dailyReminderTime" type="time" value="${esc(state.dailyReminder?.time||'18:00')}" style="margin-top:8px"><button class="btn secondary full" style="margin-top:8px" onclick="saveReminderSettings()">💾 Enregistrer</button></div><div class="card"><b>☁️ Sauvegarde en ligne</b><p class="sub">Tes cours, paquets, cartes et progression sont liés à ton compte.</p><button class="btn secondary full" onclick="cloudSaveAll();showToast('Sauvegarde cloud effectuée ☁️')">☁️ Sauvegarder maintenant</button></div><div class="card"><b>📊 Statistiques</b><p>Total cartes 🃏 <b>${cards.length}</b></p><p>Cartes maîtrisées 🧠 <b>${cards.filter(c=>c.reps>3).length}</b></p></div>${admin?`<div class="card"><b>🛡️ Administration</b><p class="sub">Tu es reconnu comme administrateur.</p><button class="btn purple full" onclick="openAdminPanel()">⚙️ Gérer l’application & la boutique</button></div>`:''}<div class="card"><b>🐞 Signaler un problème</b><p class="sub">Un bug, une carte qui disparaît, un problème de connexion ou une suggestion ? Envoie-nous un retour directement.</p><button class="btn red full" onclick="openReportForm()">🚨 Signaler un bug / problème</button></div><div class="card"><b>🎵 Réseaux</b><a class="btn secondary full" style="display:block;text-align:center;margin-top:8px" href="https://www.tiktok.com/@tkdvrk" target="_blank">TikTok @tkdvrk</a></div><button class="btn red full" onclick="logout()">Se déconnecter</button></main>`}
+async function saveProfile(){const p=document.getElementById("profilePseudo").value.trim();if(p){state.pseudo=p;save();await cloudSaveAll();await publishScore();showToast("Modifications enregistrées ! ✅");if(tab==="leader")refreshLeaderboard()}}
+
+function setKeyboard(id){const k=document.getElementById("kbd");if(!k)return;k.innerHTML=`<div class="keyboard"><div id="kr"></div><div class="row"><button class="key wide" onclick="toggleSymbols('${id}')">$ LaTeX 🔢</button><button class="space" onclick="insertKey('${id}',' ')">espace ␣</button><button class="key wide" onclick="backspace('${id}')">⌫</button></div></div>`;buildKeys(id,false)}
+function buildKeys(id,symbols){const rows=symbols?[["1","2","3","4","5","6","7","8","9","0"],["$","\\\\","+","-","*","/","=","(",")","%"],[".",",","?","!",":",";","'","_","^","{","}"]]:[["a","z","e","r","t","y","u","i","o","p"],["q","s","d","f","g","h","j","k","l","m"],["w","c","v","b","n"]];document.getElementById("kr").innerHTML=rows.map(row=>`<div class="keyrow">${row.map(k=>`<button class="key" onclick="insertKey('${id}','${k.replace(/\\/g,"\\\\").replace(/'/g,"\\'")}')">${symbols?k:k.toUpperCase()}</button>`).join("")}</div>`).join("")}
+function toggleSymbols(id){const kr=document.getElementById("kr");buildKeys(id,kr.dataset.sym!=="1");kr.dataset.sym=kr.dataset.sym==="1"?"0":"1"}
+function insertKey(id,k){const e=document.getElementById(id);if(e)e.value+=k}
+function backspace(id){const e=document.getElementById(id);if(e)e.value=e.value.slice(0,-1)}
+
+function openReportForm(){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🐞 Signaler un problème</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Ton retour sera envoyé à l’équipe Schutz app.</p><input id="reportSubject" placeholder="Sujet (ex : cartes disparues)"><select id="reportType"><option>Bug</option><option>Problème de compte</option><option>Problème de paiement / commande</option><option>Suggestion</option><option>Autre</option></select><textarea id="reportMessage" rows="7" placeholder="Décris le problème le plus précisément possible…"></textarea><button class="btn red full" onclick="submitReport()">📩 Envoyer le signalement</button></div></div>`;render()}
+async function submitReport(){const subject=document.getElementById('reportSubject').value.trim(),type=document.getElementById('reportType').value,message=document.getElementById('reportMessage').value.trim();if(!message){showToast('Décris le problème avant d’envoyer.');return}try{const res=await fetch('/.netlify/functions/send-report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subject,type,message,pseudo:state.pseudo,email:authUser?.email||''})});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||'Impossible d’envoyer le signalement.');closeModal();showToast('Signalement envoyé à l’équipe ✅')}catch(e){showToast(e.message||'Erreur d’envoi')}}
+
+async function openAdminPanel(){if(!supabaseClient||!authUser){showToast('Connexion requise');return}const check=await adminRpcSafe('is_shop_staff');if(check.error||check.data!==true){showToast('Accès administrateur refusé');return}modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Administration 🛡️</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Gère les profils, les tampons et toutes les commandes récentes.</p><div class="section-title">🍵 Cartes de fidélité</div><div id="adminUsers">Chargement…</div><div class="section-title">👑 Rôles</div><div id="adminRoles">Chargement…</div><div class="section-title">🛍️ Boutique</div><button class="btn secondary full" onclick="openAdminProducts()">🛍️ Gérer les articles de la boutique</button><div class="section-title">📦 Commandes</div><div id="adminOrders">Chargement…</div></div></div>`;render();loadAdminUsers();loadAdminRoles();loadAdminOrders();clearInterval(window.adminRefreshTimer);window.adminRefreshTimer=setInterval(()=>{if(document.getElementById('adminOrders'))loadAdminOrders()},20000)}
+async function adminRpcSafe(fn,args,ms=10000){return await Promise.race([supabaseClient.rpc(fn,args),new Promise(resolve=>setTimeout(()=>resolve({error:{message:'Le serveur ne répond pas après 10 secondes. Réessaie.'}}),ms))])}
+async function loadAdminUsers(){const box=document.getElementById('adminUsers');if(!box)return;const {data,error}=await adminRpcSafe('admin_list_players');if(error){box.innerHTML='<div class="auth-error">'+esc(error.message)+'</div>';return}box.innerHTML=(data||[]).map(u=>`<div class="card"><div class="row">${u.avatar_url?`<img src="${esc(u.avatar_url)}" style="width:42px;height:42px;border-radius:50%;object-fit:cover">`:`<div class="iconbox">👤</div>`}<div class="main"><b>${esc(u.pseudo||'Sans pseudo')}</b><div class="mini">${esc(u.user_id)} · ${u.score||0} pts · 🍵 ${u.stamps||0}/6 · ${esc(u.email||'')}</div></div></div><input id="ap-${u.user_id}" value="${esc(u.pseudo||'')}" placeholder="Pseudo"><input id="as-${u.user_id}" type="number" min="0" max="6" value="${Number(u.stamps||0)}" placeholder="Tampons (0 à 6)" style="margin-top:6px"><button class="btn primary full" style="margin-top:6px" onclick="adminSaveUser('${u.user_id}')">Enregistrer</button></div>`).join('')||'<div class="empty">Aucun compte utilisateur.</div>'}
+async function adminSaveUser(id){const btn=document.querySelector(`[onclick="adminSaveUser('${id}')"]`);if(btn){btn.disabled=true;btn.textContent='Enregistrement…'}const pseudo=document.getElementById('ap-'+id)?.value.trim()||'Champion';const stamps=Math.max(0,Math.min(6,Number(document.getElementById('as-'+id)?.value||0)));try{const r=await adminRpcSafe('admin_update_player',{p_user_id:id,p_pseudo:pseudo,p_stamps:stamps});if(r.error){showToast('Enregistrement : '+r.error.message);return}showToast('Profil + tampons enregistrés : '+stamps+'/6 🍵');closeModal();await loadAdminUsers();if(authUser?.id===id){await loadCloudData();render()}}finally{if(btn){btn.disabled=false;btn.textContent='Enregistrer'}}}
+function orderStatusMeta(s){
+  const map={
+    awaiting_payment:{label:'💳 En attente de paiement',short:'Paiement',tone:'orange'},
+    paid:{label:'💰 Payée',short:'Payée',tone:'green'},
+    preparing:{label:'📦 En préparation',short:'Préparation',tone:'purple'},
+    shipped:{label:'🚚 Expédiée',short:'Expédiée',tone:'primary'},
+    delivered:{label:'✅ Livrée',short:'Livrée',tone:'green'},
+    cancelled:{label:'❌ Annulée',short:'Annulée',tone:'red'},
+    // Compatibilité avec les anciennes commandes.
+    pending:{label:'💳 En attente de paiement',short:'Paiement',tone:'orange'},
+    repair:{label:'📦 En préparation',short:'Préparation',tone:'purple'},
+    validated:{label:'✅ Livrée',short:'Livrée',tone:'green'}
+  };
+  return map[s]||{label:'❓ Statut inconnu',short:'Inconnu',tone:'gray'};
+}
+function orderStatusLabel(s){return orderStatusMeta(s).label}
+function orderStatusOptions(current){
+  const statuses=[['awaiting_payment','💳 En attente de paiement'],['paid','💰 Payée'],['preparing','📦 En préparation'],['shipped','🚚 Expédiée'],['delivered','✅ Livrée'],['cancelled','❌ Annulée']];
+  return statuses.map(([v,l])=>`<option value="${v}" ${v===current?'selected':''}>${l}</option>`).join('');
+}
+async function loadAdminRoles(){
+  const box=document.getElementById('adminRoles'); if(!box)return;
+  const me=await adminRpcSafe('is_shop_admin');
+  if(me.error||me.data!==true){box.innerHTML='<div class="sub">Seul un administrateur peut nommer ou retirer des rôles.</div>';return}
+  const r=await adminRpcSafe('admin_list_roles');
+  if(r.error){box.innerHTML='<div class="auth-error">'+esc(r.error.message)+'</div>';return}
+  box.innerHTML=(r.data||[]).map(u=>`<div class="card"><div class="row"><div class="main"><b>${esc(u.pseudo||'Sans pseudo')}</b><div class="mini">${esc(u.email||'')} · ${esc(u.role||'user')}</div></div><select id="role-${u.user_id}" style="max-width:150px"><option value="user" ${u.role==='user'?'selected':''}>Utilisateur</option><option value="moderator" ${u.role==='moderator'?'selected':''}>Modo</option><option value="admin" ${u.role==='admin'?'selected':''}>Admin</option></select></div><button class="btn purple full" style="margin-top:8px" onclick="adminSaveRole('${u.user_id}')">Enregistrer le rôle</button></div>`).join('')||'<div class="empty">Aucun compte.</div>';
+}
+async function adminSaveRole(id){const role=document.getElementById('role-'+id)?.value||'user';const r=await adminRpcSafe('admin_set_user_role',{p_user_id:id,p_role:role});if(r.error){showToast('Rôle : '+r.error.message);return}showToast('Rôle enregistré : '+role+' ✅');closeModal();await loadAdminRoles();}
+function adminOrderCard(o){
+  const items=Array.isArray(o.items)?o.items:[];
+  const total=Number(o.total||0).toFixed(2);
+  const created=o.created_at?new Date(o.created_at).toLocaleString('fr-FR'):'—';
+  return `<div class="card admin-order" data-order-id="${esc(o.id)}">
+    <div class="row between" style="gap:10px;align-items:flex-start">
+      <div class="main"><b>📦 ${esc(o.customer_name||o.pseudo||'Client')}</b><div class="mini">Commande #${esc(String(o.id||'').slice(0,8))} · ${created}</div></div>
+      <span class="pill">${orderStatusLabel(o.status)}</span>
+    </div>
+    <div class="mini" style="margin-top:8px">👤 ${esc(o.pseudo||'—')} · ✉️ ${esc(o.customer_email||'—')}</div>
+    <p>📍 <b>${esc(o.address||'—')}</b>, ${esc(o.city||'—')}</p>
+    <p>💶 <b>${total} €</b></p>
+    <div class="sub">🛒 ${items.map(i=>`${esc(i.name)} × ${Number(i.qty)||0}`).join(' · ')||'—'}</div>
+    ${o.note?`<p class="sub">📝 ${esc(o.note)}</p>`:''}
+    <div class="grid2" style="margin-top:10px">
+      <select id="status-${esc(o.id)}" aria-label="Statut de la commande">${orderStatusOptions(o.status)}</select>
+      <button class="btn primary" onclick="adminChangeOrder('${esc(o.id)}',document.getElementById('status-${esc(o.id)}').value)">💾 Enregistrer</button>
+    </div>
+    <button class="btn red full" style="margin-top:8px" onclick="adminDeleteOrder('${esc(o.id)}')">🗑️ Supprimer la commande</button>
+  </div>`;
+}
+let adminOrdersLoading=false;
+async function loadAdminOrders(){
+  const box=document.getElementById('adminOrders');
+  if(adminOrdersLoading)return;
+  adminOrdersLoading=true;
+  if(!box)return;
+  box.innerHTML='<div class="empty">Chargement des commandes…</div>';
+  let result=await adminRpcSafe('admin_list_orders');
+  // Secours utile si PostgREST a un cache de fonction ancien : on tente la lecture directe.
+  if(result.error){
+    const fallback=await supabaseClient.from('shop_orders').select('id,user_id,pseudo,customer_name,customer_email,address,city,items,total,note,status,created_at,updated_at').order('created_at',{ascending:false});
+    if(!fallback.error){result={data:fallback.data,error:null};}
+  }
+  if(result.error){
+    box.innerHTML='<div class="auth-error"><b>Impossible de charger les commandes</b><br>'+esc(result.error.message||'Erreur inconnue')+'<br><small>Si tu viens de lancer la migration Supabase, recharge la page puis réessaie.</small></div>';
+    adminOrdersLoading=false;
+    return;
+  }
+  const rawOrders=Array.isArray(result.data)?result.data:[];const seenOrders=new Set();const orders=rawOrders.filter(o=>{const id=String(o.id||'');if(!id||seenOrders.has(id))return false;seenOrders.add(id);return true;});
+  box.innerHTML=`<div class="row between" style="margin-bottom:10px"><b>${orders.length} commande(s)</b><button class="btn secondary small" onclick="loadAdminOrders()">🔄 Actualiser</button></div>${orders.map(adminOrderCard).join('')||'<div class="empty">Aucune commande pour le moment.</div>'}`;
+  adminOrdersLoading=false;
+}
+async function adminChangeOrder(id,status){
+  const r=await adminRpcSafe('admin_update_order_status',{p_order_id:id,p_status:status});
+  if(r.error){showToast('Commande : '+r.error.message);return}
+  const o=r.data?.[0];
+  if(o){
+    try{
+      const res=await fetch('/.netlify/functions/send-order-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:o.customer_email,name:o.customer_name,pseudo:o.pseudo,status:o.status,orderId:id})});
+      const d=await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(d.error||'Mail client non envoyé');
+    }catch(e){
+      showToast('Statut enregistré, mais mail non envoyé : '+e.message);
+      await loadAdminOrders();
+      return;
+    }
+  }
+  showToast('Commande mise à jour : '+orderStatusLabel(status));
+  closeModal();
+  await loadAdminOrders();
+}
+async function adminDeleteOrder(id){
+  if(!confirm('Supprimer définitivement cette commande ? Cette action est irréversible.'))return;
+  const r=await adminRpcSafe('admin_delete_order',{p_order_id:id});
+  if(r.error){showToast('Suppression : '+r.error.message);return}
+  showToast('Commande supprimée 🗑️');
+  await loadAdminOrders();
+}
+function openGrades(){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Notes de DS 📈</h2><button class="close" onclick="closeModal()">×</button></div><div class="grade-grid">${state.dsGrades.map((g,i)=>`<div class="card"><b>${esc(g.name)}</b><div>${g.grade}/${g.max}</div><button class="btn gray small" onclick="deleteGrade(${i})">Supprimer</button></div>`).join('')}</div><input id="gName" placeholder="DS Maths"><input id="gGrade" type="number" step="0.1" placeholder="Note obtenue" style="margin-top:8px"><input id="gMax" type="number" step="0.1" value="20" placeholder="Barème" style="margin-top:8px"><button class="btn primary full" style="margin-top:8px" onclick="addGrade()">＋ Ajouter</button><div class="card"><b>Évolution</b><div style="height:180px;display:flex;align-items:end;gap:8px">${state.dsGrades.map(g=>{const h=Math.max(8,Math.min(100,(Number(g.grade)/Number(g.max||20))*100));return `<div title="${esc(g.name)}" style="flex:1;height:${h}%;background:#4f46e5;border-radius:8px 8px 2px 2px"></div>`}).join('')}</div></div></div></div>`;render()}
+function addGrade(){const n=document.getElementById('gName').value.trim(),g=Number(document.getElementById('gGrade').value),m=Number(document.getElementById('gMax').value||20);if(!n||!Number.isFinite(g)||!m)return;state.dsGrades.push({name:n,grade:g,max:m,date:new Date().toISOString()});save();cloudSaveAll();openGrades()}function deleteGrade(i){state.dsGrades.splice(i,1);save();cloudSaveAll();openGrades()}
+function openNotes(){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Pense-bête / Cahier de texte 📝</h2><button class="close" onclick="closeModal()">×</button></div>${state.notes.map((n,i)=>`<div class="list-item"><div class="main"><b>${esc(n.title)}</b><div class="sub">${esc(n.text)}</div></div><button class="btn gray small" onclick="deleteNote(${i})">×</button></div>`).join('')}<input id="nTitle" placeholder="Titre"><textarea id="nText" placeholder="Travail à faire, devoir, rappel…" style="min-height:100px;margin-top:8px"></textarea><button class="btn primary full" onclick="addNote()">＋ Ajouter</button></div></div>`;render()}
+function addNote(){const t=document.getElementById('nTitle').value.trim(),x=document.getElementById('nText').value.trim();if(!t||!x)return;state.notes.push({title:t,text:x,date:new Date().toISOString()});save();cloudSaveAll();openNotes()}function deleteNote(i){state.notes.splice(i,1);save();cloudSaveAll();openNotes()}
+function openStudyTimer(){const saved=Math.max(1,Math.min(1440,Number(localStorage.getItem('schutzTimerMinutes')||25)));window.studyTimerMinutes=saved;window.studyTimerSeconds=saved*60;modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Timer de révision ⏱️</h2><button class="close" onclick="clearInterval(window.studyTimerInterval);closeModal()">×</button></div><p class="sub">Choisis librement la durée de ta session.</p><label><b>Durée (minutes)</b><input id="studyTimerMinutes" type="number" min="1" max="1440" step="1" value="${saved}" style="margin-top:8px"></label><div id="studyTimerValue" class="timer-big" style="margin-top:10px">${fmtTimer(window.studyTimerSeconds)}</div><div class="grid2"><button class="btn primary" onclick="applyStudyTimerDuration();startStudyTimer()">▶️ Démarrer</button><button class="btn gray" onclick="resetStudyTimer()">↺ Reset</button></div><button class="btn secondary full" style="margin-top:8px" onclick="applyStudyTimerDuration()">💾 Appliquer la durée</button></div></div>`;render()}
+function applyStudyTimerDuration(){const input=document.getElementById('studyTimerMinutes');const minutes=Math.max(1,Math.min(1440,Math.round(Number(input?.value||25))));window.studyTimerMinutes=minutes;window.studyTimerSeconds=minutes*60;localStorage.setItem('schutzTimerMinutes',String(minutes));const e=document.getElementById('studyTimerValue');if(e)e.textContent=fmtTimer(window.studyTimerSeconds)}
+function startStudyTimer(){applyStudyTimerDuration();clearInterval(window.studyTimerInterval);window.studyTimerInterval=setInterval(()=>{window.studyTimerSeconds=Math.max(0,window.studyTimerSeconds-1);const e=document.getElementById('studyTimerValue');if(e)e.textContent=fmtTimer(window.studyTimerSeconds);if(window.studyTimerSeconds===0){clearInterval(window.studyTimerInterval);showToast('Session terminée ! 🎉')}},1000)}
+function resetStudyTimer(){clearInterval(window.studyTimerInterval);const minutes=Math.max(1,Math.min(1440,Number(window.studyTimerMinutes||25)));window.studyTimerSeconds=minutes*60;const e=document.getElementById('studyTimerValue');if(e)e.textContent=fmtTimer(window.studyTimerSeconds)}
+function fmtTimer(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+async function openPdfManager(){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>PDF de cours 📄</h2><button class="close" onclick="closeModal()">×</button></div><input id="pdfFile" type="file" accept="application/pdf"><input id="pdfName" placeholder="Nom du cours / document" style="margin-top:8px"><button class="btn primary full" style="margin-top:8px" onclick="uploadCoursePdf()">⬆️ Déposer le PDF</button><div class="section-title">Mes PDF</div>${state.pdfs.map((f,i)=>`<div class="list-item"><div class="main"><b>${esc(f.name)}</b><div class="mini">${new Date(f.date).toLocaleDateString('fr-FR')}</div></div><button class="btn secondary small" onclick="openPdf('${encodeURIComponent(f.path)}')">Ouvrir</button><button class="btn red small" onclick="deleteCoursePdf(${i})">🗑️</button></div>`).join('')||'<div class="empty">Aucun PDF.</div>'}</div></div>`;render()}
+async function uploadCoursePdf(){const file=document.getElementById('pdfFile')?.files?.[0],name=document.getElementById('pdfName')?.value.trim()||file?.name;if(!file||file.type!=='application/pdf'||!authUser){showToast('Choisis un PDF et vérifie ta connexion.');return}const path=authUser.id+'/'+uid()+'-'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error}=await supabaseClient.storage.from('course-pdfs').upload(path,file,{contentType:'application/pdf',upsert:false});if(error){console.error('[course-pdfs]',error);showToast(storageErrorMessage('course-pdfs',error));return}state.pdfs.push({name,path,date:new Date().toISOString()});save();await cloudSaveAll();openPdfManager();showToast('PDF ajouté 📄')}
+async function openPdf(encoded){const path=decodeURIComponent(encoded);const {data,error}=await supabaseClient.storage.from('course-pdfs').createSignedUrl(path,3600);if(error){showToast(error.message);return}window.open(data.signedUrl,'_blank')}
+async function deleteCoursePdf(i){const f=state.pdfs?.[i];if(!f)return;if(!confirm(`Supprimer le PDF « ${f.name} » ?`))return;const {error}=await supabaseClient.storage.from('course-pdfs').remove([f.path]);if(error){showToast('Suppression : '+error.message);return}state.pdfs.splice(i,1);save();await cloudSaveAll();openPdfManager();showToast('PDF supprimé 🗑️')}
+async function openExerciseSpace(){modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>Exercices communs 🤝</h2><button class="close" onclick="closeModal()">×</button></div><input id="exFile" type="file" accept=".pdf,image/*,.doc,.docx"><input id="exName" placeholder="Nom de l'exercice" style="margin-top:8px"><button class="btn primary full" style="margin-top:8px" onclick="uploadExercise()">⬆️ Déposer</button><div class="section-title">Fichiers partagés</div><div id="exerciseList">Chargement…</div></div></div>`;render();loadExercises()}
+async function loadExercises(){const box=document.getElementById('exerciseList');if(!box)return;const {data,error}=await supabaseClient.storage.from('shared-exercises').list('',{limit:100,sortBy:{column:'created_at',order:'desc'}});if(error){console.error('[shared-exercises:list]',error);box.innerHTML='<div class="auth-error"><b>Impossible de lire le dépôt commun</b><br>'+esc(storageErrorMessage('shared-exercises',error))+'<br><small>Bucket utilisé : shared-exercises</small></div>';return}box.innerHTML=(data||[]).map(f=>`<div class="list-item"><div class="main"><b>${esc(f.name)}</b></div><button class="btn secondary small" onclick="openExercise('${encodeURIComponent(f.name)}')">Ouvrir</button><button class="btn red small" onclick="deleteExercise('${encodeURIComponent(f.name)}')">🗑️</button></div>`).join('')||'<div class="empty">Aucun exercice partagé.</div>'}
+async function uploadExercise(){const file=document.getElementById('exFile')?.files?.[0],name=document.getElementById('exName')?.value.trim()||file?.name;if(!file||!authUser)return;const path=uid()+'-'+name.replace(/[^a-zA-Z0-9._-]/g,'_');const {error}=await supabaseClient.storage.from('shared-exercises').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});if(error){console.error('[shared-exercises:upload]',error);showToast(storageErrorMessage('shared-exercises',error));return}await loadExercises();showToast('Exercice partagé 🤝')}
+async function openExercise(encoded){const path=decodeURIComponent(encoded);const {data}=supabaseClient.storage.from('shared-exercises').getPublicUrl(path);window.open(data.publicUrl,'_blank')}
+async function deleteExercise(encoded){const path=decodeURIComponent(encoded);if(!confirm('Supprimer ce document partagé ?'))return;const {error}=await supabaseClient.storage.from('shared-exercises').remove([path]);if(error){showToast('Suppression : '+error.message);return}await loadExercises();showToast('Document supprimé 🗑️')}
+
+initAuth();
+</script>
+</body>
+</html>

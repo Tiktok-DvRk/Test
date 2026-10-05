@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# SPA fallback pour les mini-liens /d/XXXXXXX
+[[redirects]]
+  from = "/d/*"
+  to = "/index.html"
+  status = 200

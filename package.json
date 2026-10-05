@@ -1,0 +1,9 @@
+{
+  "name": "schutz-app",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "nodemailer": "^7.0.6",
+    "@supabase/supabase-js": "^2.57.0"
+  }
+}
