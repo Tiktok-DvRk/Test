@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 
-const TIMEOUT_MS = 20000;
+const TIMEOUT_MS = 12000;
+const withTimeout = (p, ms, label) => { let t; return Promise.race([Promise.resolve(p), new Promise((_, rej) => { t = setTimeout(() => rej(new Error(label + ' : délai dépassé (' + ms / 1000 + ' s)')), ms); })]).finally(() => clearTimeout(t)); };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8' } });
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
@@ -34,7 +35,7 @@ async function sendViaBrevoApi({ apiKey, sender, to, replyTo, subject, html }) {
 async function sendViaSmtp({ user, pass, sender, to, replyTo, subject, html }) {
   const transporter = nodemailer.createTransport({
     host: 'smtp-relay.brevo.com', port: 587, secure: false, requireTLS: true,
-    connectionTimeout: 15000, greetingTimeout: 15000, socketTimeout: TIMEOUT_MS,
+    connectionTimeout: 8000, greetingTimeout: 8000, socketTimeout: 10000,
     auth: { user, pass }
   });
   return transporter.sendMail({ from: `"${sender.name.replace(/"/g, '')}" <${sender.email}>`, to, replyTo, subject, html });
@@ -70,8 +71,8 @@ export default async req => {
     try {
       const { createClient } = await import('@supabase/supabase-js');
       sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
-      const claim = await sb.from('shop_orders').update({ status_email_sent_at: new Date().toISOString(), status_email_sent_status: 'order_confirmation_sending' })
-        .eq('id', orderId).is('status_email_sent_at', null).select('id').maybeSingle();
+      const claim = await withTimeout(sb.from('shop_orders').update({ status_email_sent_at: new Date().toISOString(), status_email_sent_status: 'order_confirmation_sending' })
+        .eq('id', orderId).is('status_email_sent_at', null).select('id').maybeSingle(), 4000, 'verrou Supabase');
       if (!claim.error && !claim.data) return json({ ok: true, duplicate: true, warning: 'Confirmation déjà envoyée pour cette commande.' });
       locked = !claim.error && !!claim.data;
     } catch (e) { console.error('[send-order] verrou indisponible', e?.message); sb = null; }
@@ -81,7 +82,8 @@ export default async req => {
     try { let q = sb.from('shop_orders').update(patch).eq('id', orderId); if (onlyIfSending) q = q.eq('status_email_sent_status', 'order_confirmation_sending'); await q; } catch {}
   };
 
-  const send = args => apiKey ? sendViaBrevoApi({ apiKey, sender, ...args }) : sendViaSmtp({ user: smtpUser, pass: smtpPass, sender, ...args });
+  const via = apiKey ? 'API Brevo' : 'SMTP Brevo';
+  const send = args => withTimeout(apiKey ? sendViaBrevoApi({ apiKey, sender, ...args }) : sendViaSmtp({ user: smtpUser, pass: smtpPass, sender, ...args }), TIMEOUT_MS, via);
   const adminHtml = `<h2>🍵 Nouvelle commande</h2><p><b>Référence :</b> ${ref} <small>(${esc(orderId)})</small></p><p><b>Client :</b> ${esc(name)}<br><b>Pseudo :</b> ${esc(pseudo || '-')}<br><b>Email :</b> ${esc(customerEmail || '(non renseigné)')}<br><b>Livraison :</b> ${esc(address)}, ${esc(city)}</p><ul>${rows}</ul><p><b>Total : ${eur(safeTotal)}</b></p>${note ? `<p><b>Note :</b> ${esc(note)}</p>` : ''}`;
   const clientHtml = `<h2>Commande reçue ✅</h2><p>Bonjour ${esc(name)},</p><p>Nous avons bien reçu ta commande <b>#${ref}</b>.</p><p><b>Livraison :</b> ${esc(address)}, ${esc(city)}</p><ul>${rows}</ul><p><b>Total : ${eur(safeTotal)}</b></p><p>Elle est en attente de traitement. Tu recevras un e-mail à chaque changement de statut.</p><p>Merci 🍵</p>`;
 
@@ -99,8 +101,8 @@ export default async req => {
   // La commande Supabase n'est JAMAIS modifiée ici hormis le suivi d'envoi d'e-mail.
   if (ownerSent || customerSent) {
     await setStatus({ status_email_sent_status: ownerSent && customerSent ? 'order_confirmation_sent' : 'order_confirmation_partial' });
-    return json({ ok: true, ownerSent, customerSent, warning: warnings.join(' | ') || null });
+    return json({ ok: true, via, ownerSent, customerSent, warning: warnings.join(' | ') || null });
   }
   if (locked) await setStatus({ status_email_sent_at: null, status_email_sent_status: 'order_confirmation_failed' }, true);
-  return json({ ok: false, error: 'Commande enregistrée, mais Brevo n’a accepté aucun e-mail. ' + warnings.join(' | ') }, 502);
+  return json({ ok: false, via, error: 'Brevo n’a accepté aucun e-mail (' + via + '). ' + warnings.join(' | ') }, 502);
 };

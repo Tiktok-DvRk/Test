@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-export default async (req) => {
+const web = async req => {
   if (req.method !== 'POST') return new Response(JSON.stringify({error:'Méthode non autorisée'}), {status:405, headers:{'content-type':'application/json'}});
   try {
     const {subject,type,message,pseudo,email} = await req.json();
@@ -25,3 +25,20 @@ export default async (req) => {
     return new Response(JSON.stringify({error:e?.message || 'Erreur serveur'}), {status:400, headers:{'content-type':'application/json'}});
   }
 };
+
+
+// ---- Adaptateur Vercel (format Node req/res) : la logique ci-dessus reste au format Web Request/Response ----
+export default async function handler(req, res) {
+  try {
+    const method = req.method || 'GET';
+    let body;
+    if (method !== 'GET' && method !== 'HEAD') body = typeof req.body === 'string' ? req.body : Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body ?? {});
+    const request = new Request('https://' + (req.headers?.host || 'localhost') + (req.url || '/'), { method, headers: { 'content-type': 'application/json' }, body });
+    const r = await web(request);
+    res.status(r.status).setHeader('content-type', r.headers.get('content-type') || 'application/json; charset=utf-8');
+    res.send(await r.text());
+  } catch (e) {
+    console.error('[api]', e);
+    res.status(500).json({ ok: false, error: 'Erreur serveur : ' + (e?.message || 'inconnue') });
+  }
+}
