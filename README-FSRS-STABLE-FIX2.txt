@@ -9,3 +9,13 @@ Correctifs appliqués dans index.html :
 6. Vérification de syntaxe JavaScript effectuée avec Node.js.
 
 Fichier principal à déployer : index.html
+
+## FSRS autonomie — session persistante
+
+La révision autonome d'un deck est maintenant une vraie boucle de maîtrise :
+- les cartes `Oublié` et `Moyen` reviennent automatiquement plus tard dans la même session ;
+- une carte `Correct` ou `Parfait` sort de la session une fois maîtrisée ;
+- une liste `Non réussies` permet de voir les cartes à reprendre ;
+- la session est sauvegardée localement après chaque notation et reprend au même endroit après fermeture/rechargement ;
+- le bouton `+ Cartes` permet d'ajouter ponctuellement certaines cartes déjà maîtrisées sans relancer tout le deck ;
+- une fois la file vide, le deck est considéré comme maîtrisé et une nouvelle session complète reste disponible.

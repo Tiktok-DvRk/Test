@@ -1113,7 +1113,7 @@ async function submitModalForm(){
     if(b){b.disabled=false;b.textContent='Sauvegarder'}
   }
 }
-function closeModal(){if(timer){clearInterval(timer);timer=null}if(window.studyTimerInterval){clearInterval(window.studyTimerInterval);window.studyTimerInterval=null}if(window.adminRefreshTimer){clearInterval(window.adminRefreshTimer);window.adminRefreshTimer=null}drawingState=null;qrPendingUrl="";modal=null;modalSubmit=null;modalSubmitting=false;render()}
+function closeModal(){if(timer){clearInterval(timer);timer=null}if(window.studyTimerInterval){clearInterval(window.studyTimerInterval);window.studyTimerInterval=null}if(window.adminRefreshTimer){clearInterval(window.adminRefreshTimer);window.adminRefreshTimer=null}if(deckLearning?.did&&deckLearning?.queue?.length)saveDeckLearningSession();drawingState=null;qrPendingUrl="";modal=null;modalSubmit=null;modalSubmitting=false;render()}
 function renderPendingQRCode(){if(!qrPendingUrl||!window.QRCode)return;const q=document.getElementById("shareQR");if(!q)return;q.innerHTML="";try{new QRCode(q,{text:qrPendingUrl,width:260,height:260,correctLevel:QRCode.CorrectLevel.M})}catch(e){console.warn("QR",e)}}
 
 const promptText=`Agis en tant qu'expert pédagogique et professeur agrégé. À partir du cours que je vais te fournir, génère des flashcards au format strict suivant pour l'application schutz-app.fr. Utilise la syntaxe LaTeX entre symboles $ pour toutes les formules mathématiques ou scientifiques.
@@ -1168,30 +1168,95 @@ function importPendingDeckShare(){
   c.decks.push({id:uid(),name:deckName,cards:p.cards.map(x=>newCard(String(x.frontText||''),String(x.backText||'')))});sessionStorage.removeItem('pendingDeckShare');save();closeModal();showToast('Paquet ajouté ! 🎉');
 }
 
-let deckLearning={did:null,cards:[],index:0,revealed:false,shuffled:false,processing:false};
+const DECK_LEARNING_SESSION_KEY="schutzDeckLearningSessionV2";
+let deckLearning={did:null,cards:[],index:0,revealed:false,shuffled:false,processing:false,queue:[],failedIds:[],sessionTotal:0};
 function shuffleCards(cards){
   const a=[...(cards||[])];
   for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
   return a;
 }
+function deckLearningCardMap(d){return new Map((d?.cards||[]).map(c=>[String(c.id),c]))}
+function saveDeckLearningSession(){
+  try{
+    if(!deckLearning?.did||!deckLearning.queue?.length){localStorage.removeItem(DECK_LEARNING_SESSION_KEY);return}
+    localStorage.setItem(DECK_LEARNING_SESSION_KEY,JSON.stringify({
+      v:2,did:deckLearning.did,queue:deckLearning.queue.map(String),index:Math.max(0,Number(deckLearning.index)||0),
+      failedIds:[...(deckLearning.failedIds||[])].map(String),sessionTotal:Math.max(deckLearning.queue.length,Number(deckLearning.sessionTotal)||0),
+      shuffled:!!deckLearning.shuffled,savedAt:new Date().toISOString()
+    }))
+  }catch(e){console.warn('[Schutz-App] session deck non sauvegardée',e)}
+}
+function loadDeckLearningSession(did){
+  try{
+    const raw=JSON.parse(localStorage.getItem(DECK_LEARNING_SESSION_KEY)||'null');
+    if(!raw||String(raw.did)!==String(did)||!Array.isArray(raw.queue)||!raw.queue.length)return null;
+    const d=deckById(did);if(!d)return null;
+    const map=deckLearningCardMap(d),queue=raw.queue.map(String).filter(id=>map.has(id));
+    if(!queue.length)return null;
+    return {...raw,queue,index:Math.min(Math.max(0,Number(raw.index)||0),queue.length-1),failedIds:(raw.failedIds||[]).map(String).filter(id=>map.has(id)),sessionTotal:Math.max(queue.length,Number(raw.sessionTotal)||queue.length),shuffled:!!raw.shuffled}
+  }catch{return null}
+}
+function clearDeckLearningSession(){try{localStorage.removeItem(DECK_LEARNING_SESSION_KEY)}catch{}}
+function buildDeckLearningFromSession(session){
+  const d=deckById(session.did);if(!d)return false;const map=deckLearningCardMap(d);
+  deckLearning={...session,cards:session.queue.map(id=>map.get(String(id))).filter(Boolean),revealed:false,processing:false,dragX:0,dragY:0,settling:false,dragging:false};
+  return !!deckLearning.cards.length;
+}
 function startDeckLearning(did,shuffled=false){
   const d=deckById(did);if(!d||!d.cards.length){showToast('Ce deck ne contient aucune carte');return}
-  deckLearning={did,cards:shuffled?shuffleCards(d.cards):d.cards.slice(),index:0,revealed:false,shuffled:!!shuffled,processing:false};
+  const saved=loadDeckLearningSession(did);
+  if(saved){
+    buildDeckLearningFromSession(saved);
+    renderDeckLearning();
+    showToast('Session reprise là où tu t’étais arrêté ▶️');
+    return;
+  }
+  const ordered=shuffled?shuffleCards(d.cards):d.cards.slice();
+  deckLearning={did,cards:ordered,index:0,revealed:false,shuffled:!!shuffled,processing:false,queue:ordered.map(c=>String(c.id)),failedIds:[],sessionTotal:ordered.length};
+  saveDeckLearningSession();
   renderDeckLearning();
 }
+function deckLearningFailedCards(){
+  const d=deckById(deckLearning.did),map=deckLearningCardMap(d);return (deckLearning.failedIds||[]).map(id=>map.get(String(id))).filter(Boolean)
+}
+function openDeckLearningFailed(){
+  const cards=deckLearningFailedCards();
+  modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🔁 Cartes non réussies</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Ces cartes reviendront dans la session jusqu’à ce que tu les maîtrises.</p>${cards.length?cards.map((c,i)=>`<div class="list-item"><div class="iconbox">${i+1}</div><div class="main"><b>${esc(c.frontText||'Carte')}</b><div class="sub">${esc(c.backText||'')}</div></div></div>`).join(''):'<div class="empty">Aucune carte en échec 🎉</div>'}<button class="btn primary full" style="margin-top:10px" onclick="closeModal();renderDeckLearning()">Retour à la session</button></div></div>`;
+  render();
+}
+function openDeckLearningAddCards(){
+  const d=deckById(deckLearning.did);if(!d)return;
+  const queueSet=new Set((deckLearning.queue||[]).map(String));
+  const candidates=d.cards.filter(c=>!queueSet.has(String(c.id)));
+  modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>➕ Ajouter quelques cartes</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Choisis seulement les cartes que tu veux revoir maintenant. Cela ne relance pas tout le deck.</p><div class="review-scope-grid">${candidates.length?candidates.map(c=>`<label class="review-scope-item" style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" data-add-deck-card="${esc(c.id)}" style="margin-top:3px;width:20px;height:20px"><span><b>${esc(c.frontText||'Carte')}</b><div class="sub">${esc(c.backText||'')}</div></span></label>`).join(''):'<div class="empty">Toutes les cartes sont déjà dans la session.</div>'}</div>${candidates.length?`<button class="btn primary full" style="margin-top:10px" onclick="addSelectedDeckLearningCards()">Ajouter les cartes sélectionnées</button>`:''}<button class="btn gray full" style="margin-top:8px" onclick="closeModal();renderDeckLearning()">Annuler</button></div></div>`;
+  render();
+}
+function addSelectedDeckLearningCards(){
+  const d=deckById(deckLearning.did);if(!d)return;
+  const map=deckLearningCardMap(d),queueSet=new Set((deckLearning.queue||[]).map(String));
+  const ids=[...document.querySelectorAll('[data-add-deck-card]:checked')].map(x=>String(x.dataset.addDeckCard)).filter(id=>map.has(id)&&!queueSet.has(id));
+  if(!ids.length){showToast('Sélectionne au moins une carte');return}
+  deckLearning.queue.push(...ids);deckLearning.sessionTotal=(Number(deckLearning.sessionTotal)||0)+ids.length;
+  deckLearning.cards=deckLearning.queue.map(id=>map.get(String(id))).filter(Boolean);
+  saveDeckLearningSession();modal=null;renderDeckLearning();showToast(`${ids.length} carte${ids.length>1?'s':''} ajoutée${ids.length>1?'s':''} à la session ➕`)
+}
 function renderDeckLearning(){
-  const d=deckById(deckLearning.did),cards=deckLearning.cards||[];if(!d){closeModal();return}
-  if(deckLearning.index>=cards.length){
-    modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><b>🎓 ${esc(d.name)}</b><button class="btn gray small" type="button" onclick="closeModal()">Fermer</button></div><div class="deck-learning-card-wrap"><div class="deck-learning-card" style="text-align:center"><div style="font-size:76px">🎉</div><h2>Deck terminé</h2><p>Tu viens de parcourir les ${cards.length} cartes${deckLearning.shuffled?' dans un ordre mélangé':''}.</p><button class="btn primary full" type="button" onclick="deckLearning.index=0;deckLearning.revealed=false;deckLearning.processing=false;renderDeckLearning()">🔁 Recommencer</button></div></div></div>`;render();return
+  const d=deckById(deckLearning.did),cards=deckLearning.cards||[];if(!d){clearDeckLearningSession();closeModal();return}
+  if(!cards.length){
+    clearDeckLearningSession();
+    modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><div><b>🎓 ${esc(d.name)}</b><div class="sub">Maîtrise atteinte</div></div><button class="btn gray small" type="button" onclick="closeModal()">Fermer</button></div><div class="deck-learning-card-wrap"><div class="deck-learning-card" style="text-align:center"><div style="font-size:76px">🎉</div><h2>Deck maîtrisé !</h2><p>Tu as réussi toutes les cartes de cette session. Les cartes que tu as marquées connues ne seront pas automatiquement relancées.</p><button class="btn primary full" type="button" onclick="startDeckLearning('${d.id}',false)">🔁 Nouvelle session complète</button></div></div></div>`;render();return
   }
-  const c=cards[deckLearning.index];
+  const failed=deckLearningFailedCards().length;
+  const mastered=Math.max(0,(Number(deckLearning.sessionTotal)||cards.length)-cards.length);
+  const pct=Math.max(0,Math.min(100,mastered/Math.max(1,Number(deckLearning.sessionTotal)||cards.length)*100));
+  const c=cards[Math.min(deckLearning.index,cards.length-1)];
   const grades=deckLearning.revealed?`<div class="grade-grid deck-grade-grid" style="width:min(920px,96vw);margin:8px auto 0"><button class="btn red" type="button" data-deck-rating="again">Oublié</button><button class="btn orange" type="button" data-deck-rating="hard">Moyen</button><button class="btn primary" type="button" data-deck-rating="good">Correct</button><button class="btn green" type="button" data-deck-rating="easy">Parfait</button></div>`:'';
   const dx=Number(deckLearning.dragX||0),dy=Number(deckLearning.dragY||0),angle=Math.max(-14,Math.min(14,dx/18));
   const transform=deckLearning.settling?`transform:translate3d(${dx}px,${dy}px,0) rotate(${angle}deg);opacity:${Math.max(.35,1-(Math.abs(dx)+Math.abs(dy))/850)};transition:transform .22s ease,opacity .22s ease;`:'';
   const side=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy<0?'up':'down');
   const label=deckLearning.dragging&&Math.max(Math.abs(dx),Math.abs(dy))>20?`<div class="deck-swipe-label ${side}" style="opacity:${Math.min(1,Math.max(Math.abs(dx),Math.abs(dy))/90)}">${side==='right'?'PARFAIT':side==='left'?'OUBLIÉ':side==='up'?'CORRECT':'MOYEN'}</div>`:'';
-  modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><div><b>🎓 ${esc(d.name)}</b><div class="sub">Carte ${deckLearning.index+1} / ${cards.length}${deckLearning.shuffled?' · 🔀 Mélangé':''}</div></div><button class="btn gray small" type="button" onclick="closeModal()">✕</button></div><div class="progress" style="background:rgba(255,255,255,.18)"><div style="width:${cards.length?deckLearning.index/cards.length*100:0}%;background:#fff"></div></div><div class="deck-learning-card-wrap"><div class="deck-swipe-stage">${label}<div id="deckLearningCard" class="deck-learning-card ${deckLearning.dragging?'swiping':''}" style="touch-action:none;${transform}" onpointerdown="deckLearningPointerDown(event)" onpointermove="deckLearningPointerMove(event)" onpointerup="deckLearningPointerUp(event)" onpointercancel="deckLearningPointerCancel()"><div class="learning-front learning-content math center ${textSizeClass(c.frontText)}">${mathText(c.frontText)}${cardMediaHtml(c,'front')}</div>${deckLearning.revealed?`<div class="learning-back learning-content math center ${textSizeClass(c.backText)}">${mathText(c.backText)}${cardMediaHtml(c,'back')}</div>`:`<button class="btn primary full" type="button" style="margin-top:28px;touch-action:manipulation" onclick="event.stopPropagation();deckLearning.revealed=true;deckLearning.dragX=0;deckLearning.dragY=0;renderDeckLearning()">👀 Révéler la réponse</button>`}</div></div></div>${grades}<div class="deck-learning-hint">${deckLearning.revealed?'Glisse : ← Oublié · ↓ Moyen · ↑ Correct · → Parfait':'Révèle la réponse puis utilise les 4 boutons ou glisse la carte pour noter ta maîtrise'}</div><div class="swipe-map"><span>⬅️ Oublié</span><span>⬇️ Moyen</span><span>⬆️ Correct</span><span>➡️ Parfait</span></div></div>`;
-  render();if(window.MathJax)MathJax.typesetPromise().catch(()=>{});
+  modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><div><b>🎓 ${esc(d.name)}</b><div class="sub">${cards.length} carte${cards.length>1?'s':''} à maîtriser · ${mastered} connue${mastered>1?'s':''}</div></div><div style="display:flex;gap:6px;align-items:center"><button class="btn gray small" type="button" onclick="openDeckLearningAddCards()">＋ Cartes</button><button class="btn gray small" type="button" onclick="closeModal()">✕</button></div></div><div class="progress" style="background:rgba(255,255,255,.18)"><div style="width:${pct}%;background:#fff"></div></div><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12px;color:#cbd5e1;padding:6px 2px"><span>Encore ${cards.length} à maîtriser</span><button class="btn gray small" type="button" onclick="openDeckLearningFailed()">🔁 Non réussies : ${failed}</button></div><div class="deck-learning-card-wrap"><div class="deck-swipe-stage">${label}<div id="deckLearningCard" class="deck-learning-card ${deckLearning.dragging?'swiping':''}" style="touch-action:none;${transform}" onpointerdown="deckLearningPointerDown(event)" onpointermove="deckLearningPointerMove(event)" onpointerup="deckLearningPointerUp(event)" onpointercancel="deckLearningPointerCancel()"><div class="learning-front learning-content math center ${textSizeClass(c.frontText)}">${mathText(c.frontText)}${cardMediaHtml(c,'front')}</div>${deckLearning.revealed?`<div class="learning-back learning-content math center ${textSizeClass(c.backText)}">${mathText(c.backText)}${cardMediaHtml(c,'back')}</div>`:`<button class="btn primary full" type="button" style="margin-top:28px;touch-action:manipulation" onclick="event.stopPropagation();deckLearning.revealed=true;deckLearning.dragX=0;deckLearning.dragY=0;renderDeckLearning()">👀 Révéler la réponse</button>`}</div></div></div>${grades}<div class="deck-learning-hint">${deckLearning.revealed?'Glisse : ← Oublié · ↓ Moyen · ↑ Correct · → Parfait':'Révèle la réponse puis note ta maîtrise. Les cartes difficiles reviennent automatiquement.'}</div><div class="swipe-map"><span>⬅️ Oublié</span><span>⬇️ Moyen</span><span>⬆️ Correct</span><span>➡️ Parfait</span></div></div>`;
+  render();
 }
 function deckLearningPointerDown(e){if(!deckLearning.revealed||deckLearning.settling||deckLearning.processing)return;if(e.target?.closest?.('.deck-grade-grid,button'))return;deckSwipeStart={x:e.clientX,y:e.clientY};deckLearning.dragging=true;deckLearning.dragX=0;deckLearning.dragY=0;try{e.currentTarget.setPointerCapture?.(e.pointerId)}catch{}}
 function deckLearningPointerMove(e){if(!deckLearning.dragging||!deckSwipeStart)return;deckLearning.dragX=e.clientX-deckSwipeStart.x;deckLearning.dragY=e.clientY-deckSwipeStart.y;const card=document.getElementById('deckLearningCard');if(!card)return;const dx=deckLearning.dragX,dy=deckLearning.dragY,angle=Math.max(-14,Math.min(14,dx/18));card.style.transform=`translate3d(${dx}px,${dy}px,0) rotate(${angle}deg)`;card.style.opacity=String(Math.max(.35,1-(Math.abs(dx)+Math.abs(dy))/850));const stage=card.parentElement;stage?.querySelectorAll('.deck-swipe-label').forEach(l=>l.style.opacity='0');const side=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy<0?'up':'down');const lab=stage?.querySelector('.deck-swipe-label.'+side);if(lab)lab.style.opacity=String(Math.min(1,Math.max(Math.abs(dx),Math.abs(dy))/90));}
@@ -1199,7 +1264,23 @@ function deckLearningPointerUp(e){if(!deckLearning.dragging||!deckSwipeStart)ret
 function deckLearningPointerCancel(){deckSwipeStart=null;deckLearning.dragging=false;deckLearning.dragX=0;deckLearning.dragY=0;renderDeckLearning()}
 async function rateDeckLearning(r){
   if(deckLearning.processing)return;const c=deckLearning.cards?.[deckLearning.index];if(!c)return;deckLearning.processing=true;
-  try{const result=await fsrsEvaluate(c,r);Object.assign(c,result);if(!Object.prototype.hasOwnProperty.call(result,'reps'))c.reps=(Number(c.reps)||0)+1;if(!Object.prototype.hasOwnProperty.call(result,'lapses'))c.lapses=(Number(c.lapses)||0)+(r==='again'?1:0);c.reviewLogs=Array.isArray(c.reviewLogs)?c.reviewLogs:[];c.reviewLogs.push({date:new Date().toISOString(),rating:r,algorithm:c.fsrsAlgorithm||'FSRS'});save();deckLearning.index++;deckLearning.revealed=false;deckLearning.dragX=0;deckLearning.dragY=0;deckLearning.settling=false;deckLearning.dragging=false}catch(e){console.error('[Schutz-App] FSRS rateDeckLearning',e);showToast('Impossible d’enregistrer cette note.')}finally{deckLearning.processing=false;renderDeckLearning()}
+  try{
+    const result=await fsrsEvaluate(c,r);Object.assign(c,result);
+    if(!Object.prototype.hasOwnProperty.call(result,'reps'))c.reps=(Number(c.reps)||0)+1;
+    if(!Object.prototype.hasOwnProperty.call(result,'lapses'))c.lapses=(Number(c.lapses)||0)+(r==='again'?1:0);
+    c.reviewLogs=Array.isArray(c.reviewLogs)?c.reviewLogs:[];c.reviewLogs.push({date:new Date().toISOString(),rating:r,algorithm:c.fsrsAlgorithm||'FSRS'});save();
+    const id=String(c.id),q=deckLearning.queue||[];q.splice(deckLearning.index,1);
+    if(r==='again'||r==='hard'){
+      deckLearning.failedIds=[...new Set([...(deckLearning.failedIds||[]).map(String),id])];
+      const insertAt=Math.min(deckLearning.index+3,q.length);q.splice(insertAt,0,id);
+    }else{
+      deckLearning.failedIds=(deckLearning.failedIds||[]).map(String).filter(x=>x!==id);
+    }
+    deckLearning.queue=q;deckLearning.index=Math.min(deckLearning.index,q.length);deckLearning.revealed=false;deckLearning.dragX=0;deckLearning.dragY=0;deckLearning.settling=false;deckLearning.dragging=false;
+    const d=deckById(deckLearning.did),map=deckLearningCardMap(d);deckLearning.cards=q.map(x=>map.get(String(x))).filter(Boolean);
+    saveDeckLearningSession();
+    if(!deckLearning.cards.length)clearDeckLearningSession();
+  }catch(e){console.error('[Schutz-App] FSRS rateDeckLearning',e);showToast('Impossible d’enregistrer cette note.')}finally{deckLearning.processing=false;renderDeckLearning()}
 }
 const TEA_SUPPLEMENT=0.20;
 async function loadShopProducts(shouldRender=true){
