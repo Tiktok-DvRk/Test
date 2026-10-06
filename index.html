@@ -389,7 +389,7 @@ body:after{content:'';position:fixed;inset:0;z-index:600;pointer-events:none;opa
 
 </style>
 </head>
-<body data-version="V19-FSRS-FIX2">
+<body data-version="V20-FSRS-EXAM-ROUNDS">
 <div id="root"></div>
 <script>
 const KEY="schutzAppExactV1";
@@ -1078,7 +1078,7 @@ function openMerge(cid){const c=courseById(cid);if(c.decks.length<2){showToast("
 
 function cloneCard(x){return {...x,id:uid(),reviewLogs:[]}}
 function openDeck(id){const d=deckById(id);modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>${esc(d.name)}</h2><button class="close" onclick="closeModal()">×</button></div>
- <button class="btn orange full" onclick="openChrono('${id}')">⏱️ Lancer le Test Chrono</button><button class="btn primary full" style="margin-top:8px" onclick="startDeckLearning('${id}',false)">🎓 Apprendre ce deck en autonomie</button><button class="btn primary full" style="margin-top:8px" onclick="startDeckLearning('${id}',true)">🔀 Apprendre ce deck en mélangeant</button><button class="btn secondary full" style="margin-top:8px" onclick="startReviewTarget('deck','${id}',false,false)">🧠 Réviser ce chapitre avec FSRS</button><button class="btn secondary full" style="margin-top:8px" onclick="startReviewTarget('deck','${id}',false,true)">🔀 FSRS + ordre mélangé</button><button class="btn secondary full" style="margin-top:8px" onclick="shareDeck('${id}')">🌐 Partager ce paquet avec tes potes</button><button class="btn purple full" style="margin-top:8px" onclick="openImport('${id}')">📋 Coller / Importer des cartes</button><button class="btn primary full" style="margin-top:8px" onclick="openAddCard('${id}')">＋ Ajouter une carte</button><button class="btn red full" style="margin-top:8px" onclick="deleteDeck('${id}')">🗑️ Supprimer ce deck entier</button>
+ <button class="btn orange full" onclick="openChrono('${id}')">⏱️ Lancer le Test Chrono</button><button class="btn primary full" style="margin-top:8px" onclick="startDeckLearning('${id}',false)">🎓 Apprendre ce deck en autonomie</button><button class="btn primary full" style="margin-top:8px" onclick="startDeckLearning('${id}',true)">🔀 Apprendre ce deck en mélangeant</button><button class="btn secondary full" style="margin-top:8px" onclick="startDeckLearning('${id}',false)">🧠 Réviser ce chapitre avec FSRS</button><div class="sub" style="margin-top:-2px;margin-bottom:8px">Mode examen : 1 tour complet puis choix des cartes à reprendre.</div><button class="btn secondary full" style="margin-top:8px" onclick="startDeckLearning('${id}',true)">🔀 FSRS + ordre mélangé</button><button class="btn secondary full" style="margin-top:8px" onclick="shareDeck('${id}')">🌐 Partager ce paquet avec tes potes</button><button class="btn purple full" style="margin-top:8px" onclick="openImport('${id}')">📋 Coller / Importer des cartes</button><button class="btn primary full" style="margin-top:8px" onclick="openAddCard('${id}')">＋ Ajouter une carte</button><button class="btn red full" style="margin-top:8px" onclick="deleteDeck('${id}')">🗑️ Supprimer ce deck entier</button>
  <h3>🃏 Cartes (${d.cards.length})</h3>${d.cards.length?d.cards.map(c=>`<div class="card"><div class="math">❓ ${mathText(c.frontText)}</div>${cardMediaHtml(c,"front") }<div class="sub math">💡 ${mathText(c.backText)}</div>${cardMediaHtml(c,"back") }<div class="row" style="margin-top:8px"><button class="btn secondary small" onclick="openEditCard('${id}','${c.id}')">✏️ Modifier</button><button class="btn red small" onclick="deleteCard('${id}','${c.id}')">🗑️</button></div></div>`).join(""):`<div class="empty">Aucune carte dans ce paquet 📭</div>`}</div></div>`;render()}
 function deleteCard(did,cid){const d=deckById(did);d.cards=d.cards.filter(c=>c.id!==cid);save();openDeck(did)}
 function cardEditorBody(c){
@@ -1168,7 +1168,8 @@ function importPendingDeckShare(){
   c.decks.push({id:uid(),name:deckName,cards:p.cards.map(x=>newCard(String(x.frontText||''),String(x.backText||'')))});sessionStorage.removeItem('pendingDeckShare');save();closeModal();showToast('Paquet ajouté ! 🎉');
 }
 
-const DECK_LEARNING_SESSION_KEY="schutzDeckLearningSessionV3";
+const DECK_LEARNING_SESSION_KEY_PREFIX="schutzDeckLearningSessionV4:";
+function deckLearningSessionKey(did){return DECK_LEARNING_SESSION_KEY_PREFIX+String(did||"")}
 let deckLearning={did:null,cards:[],index:0,revealed:false,shuffled:false,processing:false,queue:[],failedIds:[],sessionTotal:0,phase:"initial",roundIds:[],roundName:"Série complète",roundDone:0};
 
 function shuffleCards(cards){
@@ -1179,22 +1180,22 @@ function shuffleCards(cards){
 function deckLearningCardMap(d){return new Map((d?.cards||[]).map(c=>[String(c.id),c]));}
 function saveDeckLearningSession(){
   try{
-    if(!deckLearning?.did){localStorage.removeItem(DECK_LEARNING_SESSION_KEY);return}
+    if(!deckLearning?.did){localStorage.removeItem(deckLearningSessionKey(deckLearning.did));return}
     const payload={
       v:3,did:String(deckLearning.did),queue:(deckLearning.queue||[]).map(String),
-      index:Math.max(0,Number(deckLearning.index)||0),
+      index:0,
       failedIds:[...(deckLearning.failedIds||[])].map(String),
       sessionTotal:Math.max(0,Number(deckLearning.sessionTotal)||0),
       shuffled:!!deckLearning.shuffled,phase:deckLearning.phase||"initial",
       roundIds:[...(deckLearning.roundIds||[])].map(String),roundName:deckLearning.roundName||"Série complète",
       roundDone:Math.max(0,Number(deckLearning.roundDone)||0),savedAt:new Date().toISOString()
     };
-    localStorage.setItem(DECK_LEARNING_SESSION_KEY,JSON.stringify(payload));
+    localStorage.setItem(deckLearningSessionKey(deckLearning.did),JSON.stringify(payload));
   }catch(e){console.warn('[Schutz-App] session deck non sauvegardée',e)}
 }
 function loadDeckLearningSession(did){
   try{
-    const raw=JSON.parse(localStorage.getItem(DECK_LEARNING_SESSION_KEY)||'null');
+    const raw=JSON.parse(localStorage.getItem(deckLearningSessionKey(did))||'null');
     if(!raw||String(raw.did)!==String(did)||!Array.isArray(raw.queue))return null;
     const d=deckById(did);if(!d)return null;
     const map=deckLearningCardMap(d);
@@ -1202,7 +1203,7 @@ function loadDeckLearningSession(did){
     const roundIds=(raw.roundIds||[]).map(String).filter(id=>map.has(id));
     if((raw.phase||"initial")!=="complete"&&!queue.length&&!roundIds.length)return null;
     return {
-      ...raw,did:String(did),queue,index:Math.min(Math.max(0,Number(raw.index)||0),Math.max(0,queue.length-1)),
+      ...raw,did:String(did),queue,index:0,
       failedIds:(raw.failedIds||[]).map(String).filter(id=>map.has(id)),
       roundIds,sessionTotal:Math.max(0,Number(raw.sessionTotal)||d.cards.length),
       shuffled:!!raw.shuffled,phase:raw.phase||"initial",roundName:raw.roundName||"Série complète",
@@ -1210,7 +1211,7 @@ function loadDeckLearningSession(did){
     };
   }catch{return null}
 }
-function clearDeckLearningSession(){try{localStorage.removeItem(DECK_LEARNING_SESSION_KEY)}catch{}}
+function clearDeckLearningSession(){try{if(deckLearning?.did)localStorage.removeItem(deckLearningSessionKey(deckLearning.did))}catch{}}
 function buildDeckLearningFromSession(session){
   const d=deckById(session.did);if(!d)return false;
   const map=deckLearningCardMap(d);
@@ -1257,6 +1258,7 @@ function deckLearningCandidatesFor(kind){
   const d=deckById(deckLearning.did);if(!d)return[];
   const cards=d.cards||[];
   if(kind==="failed")return cards.filter(c=>deckLearningRating(c)==="again");
+  if(kind==="hardOnly")return cards.filter(c=>deckLearningRating(c)==="hard");
   if(kind==="hard")return cards.filter(c=>["again","hard"].includes(deckLearningRating(c)));
   if(kind==="notEasy")return cards.filter(c=>["again","hard","good"].includes(deckLearningRating(c)));
   return cards.slice();
@@ -1287,11 +1289,12 @@ function renderDeckLearningRoundChoice(){
   const hardLabel=hard?`🟠 Oubliées + moyennes (${hard})`:`🟠 Aucune carte à reprendre`;
   const notEasyLabel=notEasy?`🟡 Toutes sauf les parfaites (${notEasy})`:`🟡 Aucune carte à reprendre`;
   modal=`<div class="modal-back"><div class="modal" style="max-width:620px"><div class="modal-head"><h2>🎉 Série terminée !</h2><button class="close" onclick="closeModal()">×</button></div>
-  <div class="card" style="text-align:center;background:linear-gradient(135deg,#eef2ff,#faf5ff);border:0"><div style="font-size:46px">🎓</div><h2 style="margin:8px 0">Tes ${total} cartes sont passées une fois.</h2><p class="sub" style="margin:0">Pour un examen demain, choisis maintenant ce que tu veux revoir. Tu peux refaire plusieurs tours.</p></div>
+  <div class="card" style="text-align:center;background:linear-gradient(135deg,#eef2ff,#faf5ff);border:0"><div style="font-size:46px">🎓</div><h2 style="margin:8px 0">Tes ${total} cartes sont passées une fois.</h2><p class="sub" style="margin:0">Tour terminé. Pour un examen demain, choisis exactement ce que tu veux revoir ensuite.</p></div>
   <div style="display:grid;gap:10px;margin-top:14px">
    <button class="btn primary full" ${failed?'':'disabled'} onclick="startDeckLearningRound(deckLearningCandidatesFor('failed').map(c=>c.id),'🔴 Cartes oubliées')">${failedLabel}</button>
    <button class="btn orange full" ${hard?'':'disabled'} onclick="startDeckLearningRound(deckLearningCandidatesFor('hard').map(c=>c.id),'🟠 Oubliées + moyennes')">${hardLabel}</button>
    <button class="btn secondary full" ${notEasy?'':'disabled'} onclick="startDeckLearningRound(deckLearningCandidatesFor('notEasy').map(c=>c.id),'🟡 Cartes à consolider')">${notEasyLabel}</button>
+   <button class="btn gray full" onclick="startDeckLearningRound(deckLearningCandidatesFor('hardOnly').map(c=>c.id),'🟠 Cartes moyennes')">🟠 Revoir les ${deckLearningCandidatesFor('hardOnly').length} moyennes</button>
    <button class="btn purple full" onclick="startDeckLearningRound(deckLearningCandidatesFor('all').map(c=>c.id),'🔥 Toutes les cartes')">🔥 Revoir les ${all} cartes</button>
    <button class="btn gray full" onclick="openDeckLearningAddCards(true)">➕ Choisir quelques cartes</button>
    <button class="btn gray full" onclick="finishDeckLearningSession()">✅ Terminer la révision</button>
@@ -1301,7 +1304,7 @@ function renderDeckLearningRoundChoice(){
 
 function openDeckLearningFailed(){
   const cards=deckLearningFailedCards();
-  modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🔴 Cartes oubliées</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Cartes actuellement notées « Oublié ».</p>${cards.length?cards.map((c,i)=>`<div class="list-item"><div class="iconbox">${i+1}</div><div class="main"><b>${esc(c.frontText||'Carte')}</b><div class="sub">${esc(c.backText||'')}</div></div></div>`).join(''):'<div class="empty">Aucune carte oubliée 🎉</div>'}<button class="btn primary full" style="margin-top:10px" onclick="closeModal();renderDeckLearning()">Retour</button></div></div>`;
+  modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🔴 Cartes oubliées</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Cartes de ce deck dont la dernière réponse est « Oublié ».</p>${cards.length?cards.map((c,i)=>`<div class="list-item"><div class="iconbox">${i+1}</div><div class="main"><b>${esc(c.frontText||'Carte')}</b><div class="sub">${esc(c.backText||'')}</div></div></div>`).join(''):'<div class="empty">Aucune carte oubliée 🎉</div>'}<button class="btn primary full" style="margin-top:10px" onclick="closeModal();renderDeckLearning()">Retour</button></div></div>`;
   render();
 }
 
@@ -1393,7 +1396,7 @@ async function rateDeckLearning(r){
     if(pos>=0)q.splice(pos,1);
     deckLearning.queue=q;
     deckLearning.roundDone=(Number(deckLearning.roundDone)||0)+1;
-    deckLearning.index=Math.min(deckLearning.index,q.length);
+    deckLearning.index=0;
     deckLearning.revealed=false;deckLearning.dragX=0;deckLearning.dragY=0;deckLearning.settling=false;deckLearning.dragging=false;
     const d=deckById(deckLearning.did),map=deckLearningCardMap(d);
     deckLearning.cards=q.map(x=>map.get(String(x))).filter(Boolean);
