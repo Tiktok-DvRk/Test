@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { parseSender as parseBrevoSender, sendBrevoTemplate, getBrevoTemplateId } from '../brevo-template.mjs';
+import { parseSender as parseBrevoSender, sendBrevoTemplate, getBrevoTemplateId } from './brevo-template.mjs';
 
 const TIMEOUT_MS = 12000;
 const withTimeout = (p, ms, label) => { let t; return Promise.race([Promise.resolve(p), new Promise((_, rej) => { t = setTimeout(() => rej(new Error(label + ' : délai dépassé (' + ms / 1000 + ' s)')), ms); })]).finally(() => clearTimeout(t)); };

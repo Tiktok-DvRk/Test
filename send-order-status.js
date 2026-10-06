@@ -1,4 +1,4 @@
-import { parseSender, sendBrevoTemplate, getBrevoTemplateId } from '../brevo-template.mjs';
+import { parseSender, sendBrevoTemplate, getBrevoTemplateId } from './brevo-template.mjs';
 
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}});
 const clean=s=>String(s??'').replace(/[<>]/g,'');
