@@ -283,6 +283,54 @@ body{background:radial-gradient(70% 45% at 8% 0%,rgba(124,58,237,.16),transparen
 .cart-fab:active{transform:scale(.94)}
 .fly{position:fixed;z-index:var(--z-toast);width:44px;height:44px;display:grid;place-items:center;font-size:34px;pointer-events:none;will-change:transform,opacity;filter:drop-shadow(0 8px 14px rgba(124,58,237,.4))}
 @media(prefers-reduced-motion:reduce){.shop-product .iconbox{animation:none}.tab-enter .shop-product,.tab-enter .shop-hero{animation:none}.cart-fab{transition:none}.fly{display:none}}
+/* ===== V37 : fiche produit, panier coulissant, nombres animés, parallaxe, grain, profondeur ===== */
+:root{--z-sheet:150;--elev-1:0 1px 0 rgba(255,255,255,.9) inset,0 8px 22px rgba(79,70,229,.08);--elev-2:0 14px 34px rgba(79,70,229,.14);--elev-3:0 18px 44px rgba(79,70,229,.24);--elev-4:0 30px 80px rgba(30,27,75,.38)}
+.card{box-shadow:var(--elev-1)}.shop-product{box-shadow:var(--elev-2);cursor:pointer}.cart-fab{box-shadow:var(--elev-3),0 1px 0 rgba(255,255,255,.3) inset}
+.v37-layer{position:fixed;inset:0;z-index:var(--z-sheet);visibility:hidden;pointer-events:none;transition:visibility 0s linear .5s}
+.v37-layer.open{visibility:visible;pointer-events:auto;transition-delay:0s}
+.v37-back{position:absolute;inset:0;background:rgba(30,27,75,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity .45s var(--ease-premium)}
+.v37-layer.open>.v37-back{opacity:1}.v37-layer.leaving>.v37-back{opacity:0}
+.cart-drawer{position:absolute;top:0;right:0;bottom:0;width:min(440px,100vw);display:flex;flex-direction:column;background:linear-gradient(170deg,rgba(255,255,255,.98),rgba(246,243,255,.97));box-shadow:var(--elev-4);border-radius:var(--r-xl) 0 0 var(--r-xl);transform:translate3d(104%,0,0);transition:transform .5s var(--ease-premium);padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);overscroll-behavior:contain}
+.v37-layer.open .cart-drawer{transform:none}
+.cd-head{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 8px}.cd-head h2{margin:0;font-size:24px}
+.cd-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 16px;overscroll-behavior:contain}
+.cd-list{display:flex;flex-direction:column}.cd-list.go .ci{animation:v37Rise .5s var(--ease-premium) both;animation-delay:calc(.12s + var(--i,0)*.06s)}
+.ci{display:grid;grid-template-rows:1fr;transition:grid-template-rows .36s var(--ease-premium),opacity .26s,transform .36s var(--ease-premium)}
+.ci.new{animation:v37Rise .45s var(--ease-premium) both}
+.ci.out{grid-template-rows:0fr;opacity:0;transform:translateX(40px) scale(.95)}
+.ci-in{min-height:0;overflow:hidden}.ci-card{display:flex;align-items:center;gap:12px;padding:12px;margin-bottom:10px;border-radius:var(--r-lg);background:#fff;box-shadow:var(--elev-1);border:1px solid var(--border)}
+.ci-ico{font-size:30px;width:50px;height:50px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(79,70,229,.1),rgba(236,72,153,.12));flex:none}
+.ci-main{flex:1;min-width:0}.ci-main b{display:block;font-size:15px;letter-spacing:-.01em}.ci-main small{color:var(--muted)}
+.ci-qty{display:flex;align-items:center;gap:2px;background:rgba(79,70,229,.08);border-radius:14px;padding:3px}
+.ci-qty button{width:34px;height:34px;border:0;border-radius:11px;background:#fff;color:var(--primary);font:800 18px var(--font-ui);box-shadow:0 2px 6px rgba(79,70,229,.15);transition:transform .15s var(--ease-premium)}.ci-qty button:active{transform:scale(.85)}
+.ci-qty .q{min-width:26px;text-align:center;font:700 16px var(--font-num);display:inline-block}
+.ci-line{font:700 15px var(--font-num);min-width:64px;text-align:right;display:inline-block}
+.tick{animation:v37Tick .34s var(--ease-premium)}@keyframes v37Tick{from{opacity:0;transform:translateY(55%) scale(.8)}to{opacity:1;transform:none}}
+@keyframes v37Rise{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
+.cd-empty{display:none;text-align:center;padding:50px 20px;color:var(--muted)}.cd-empty.show{display:block;animation:v37Rise .5s var(--ease-premium) both}.cd-e-ico{font-size:64px;animation:v36Bob 4s ease-in-out infinite}
+.cd-foot{padding:14px 18px 18px;border-top:1px solid var(--border);background:rgba(255,255,255,.7)}
+.cd-total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;font-weight:700}.cd-total b{font:800 28px var(--font-num);letter-spacing:-.03em;display:inline-block}
+.cd-go{width:100%;min-height:54px;font-size:16px}.cd-go:disabled{opacity:.45}
+.ps-panel{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 12px);bottom:calc(env(safe-area-inset-bottom) + 12px);max-width:520px;margin-inline:auto;margin-block:auto;height:max-content;max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;border-radius:30px;background:linear-gradient(170deg,#fff,#f7f4ff);box-shadow:var(--elev-4)}
+.ps-close{position:absolute;right:12px;top:12px;z-index:2;background:rgba(255,255,255,.8)!important;border-radius:50%}
+.ps-hero{height:min(38vh,250px);display:grid;place-items:center;border-radius:30px 30px 26px 26px;background:radial-gradient(circle at 50% 30%,#fff,rgba(124,58,237,.14) 70%),linear-gradient(135deg,rgba(79,70,229,.14),rgba(236,72,153,.16))}
+.ps-ico{font-size:118px;line-height:1;filter:drop-shadow(0 18px 24px rgba(124,58,237,.35));animation:v36Bob 4.2s ease-in-out infinite .7s;will-change:transform}
+.ps-body{padding:20px 22px 24px;display:flex;flex-direction:column;gap:12px}.ps-body>*{animation:v37Rise .55s var(--ease-premium) both}
+.ps-body>:nth-child(1){animation-delay:.2s}.ps-body>:nth-child(2){animation-delay:.26s}.ps-body>:nth-child(3){animation-delay:.32s}.ps-body>:nth-child(4){animation-delay:.38s}.ps-body>:nth-child(5){animation-delay:.44s}
+.ps-name{margin:0;font-size:30px}.ps-desc{margin:0;color:var(--muted);font-size:16px;line-height:1.45}
+.ps-price{font:800 34px var(--font-num);letter-spacing:-.03em;background:var(--aurora);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;width:max-content}
+.ps-chips{display:flex;flex-wrap:wrap;gap:8px}.ps-chips span{font-size:13px;font-weight:600;padding:7px 11px;border-radius:12px;background:rgba(79,70,229,.08);color:var(--primary)}
+.ps-row{display:flex;gap:12px;align-items:center;margin-top:4px}.ps-row .btn{flex:1;min-height:54px;font-size:16px}.ps-add.ok{background:linear-gradient(135deg,#16a34a,#22c55e)!important}
+.ps-sum{display:inline-block;font-family:var(--font-num)}
+#bgFx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+#bgFx i{position:absolute;border-radius:50%;will-change:translate}
+#bgFx .a{width:70vmax;height:70vmax;left:-28vmax;top:-22vmax;background:radial-gradient(closest-side,rgba(124,58,237,.17),transparent);translate:0 calc(var(--sy,0)*-.06px)}
+#bgFx .b{width:60vmax;height:60vmax;right:-24vmax;bottom:-20vmax;background:radial-gradient(closest-side,rgba(236,72,153,.14),transparent);translate:0 calc(var(--sy,0)*-.12px)}
+.shop-hero:after{translate:0 calc(var(--py,0px)*-1)}
+body:after{content:'';position:fixed;inset:0;z-index:600;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url%28%23n%29'/%3E%3C/svg%3E");background-size:160px 160px}
+@media(max-width:520px){.cart-drawer{border-radius:var(--r-xl) 0 0 var(--r-xl)}.ps-ico{font-size:104px}}
+@media(prefers-reduced-motion:reduce){.cart-drawer{transition:none}.ps-ico,.cd-e-ico{animation:none}.ps-body>*,.cd-list.go .ci,.ci.new{animation:none}#bgFx i{translate:none}}
+.ps-panel:focus,.cart-drawer:focus{outline:none}
 </style>
 </head>
 <body data-version="V19">
@@ -306,7 +354,7 @@ let shopCart=[];
 /* ===== Modales : scroll lock iOS-safe, arrière-plan inerte, focus ===== */
 let scrollLocked=false,lockedY=0,modalWasOpen=false;
 function syncModalLock(){
-  const open=!!modal||!!document.querySelector('.deck-learning-overlay'),b=document.body,app=document.querySelector('.app');
+  const open=!!modal||!!document.querySelector('.deck-learning-overlay,.v37-layer.open'),b=document.body,app=document.querySelector('.app');
   if(app)[...app.children].forEach(el=>{const front=el.matches('.modal-back,.toast,.deck-learning-overlay');if(open&&!front)el.setAttribute('inert','');else el.removeAttribute('inert')});
   if(open&&!scrollLocked){lockedY=window.scrollY||0;b.style.cssText+=';position:fixed;top:-'+lockedY+'px;left:0;right:0;width:100%';scrollLocked=true}
   else if(!open&&scrollLocked){b.style.position=b.style.top=b.style.left=b.style.right=b.style.width='';scrollLocked=false;window.scrollTo(0,lockedY)}
@@ -353,7 +401,7 @@ function updateCartFab(){
   const on=authUser&&state.pseudo&&tab==='shop';
   if(!on){if(f)f.classList.remove('show');return}
   if(!f){f=document.createElement('button');f.id='cartFab';f.className='cart-fab';f.setAttribute('aria-label','Voir ma commande');
-    f.onclick=()=>{const a=document.getElementById('cartAnchor');if(a)a.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})};
+    f.onclick=()=>openCart();
     f.innerHTML='<span class="cf-ico">🛒</span><b class="cf-n">0</b><span class="cf-t">0,00 €</span>';document.body.appendChild(f)}
   const n=shopCart.reduce((a,i)=>a+i.qty,0),t=shopCart.reduce((a,i)=>a+i.price*i.qty,0);
   f.querySelector('.cf-n').textContent=n;f.querySelector('.cf-t').textContent=t.toFixed(2).replace('.',',')+' €';f.classList.toggle('filled',n>0);
@@ -378,6 +426,102 @@ document.addEventListener('pointermove',e=>{
   if(!tiltRaf)tiltRaf=requestAnimationFrame(()=>{tiltRaf=0;if(!tiltEl)return;const r=tiltEl.getBoundingClientRect(),x=(tiltEv.clientX-r.left)/r.width-.5,y=(tiltEv.clientY-r.top)/r.height-.5;
     tiltEl.style.setProperty('--ry',(x*9).toFixed(2)+'deg');tiltEl.style.setProperty('--rx',(-y*9).toFixed(2)+'deg');tiltEl.style.setProperty('--mx',((x+.5)*100).toFixed(1)+'%');tiltEl.style.setProperty('--my',((y+.5)*100).toFixed(1)+'%')});
 },{passive:true});
+
+/* ===== V37 : fiche produit (carte→fiche), panier coulissant, nombres animés, parallaxe ===== */
+const RM=()=>matchMedia('(prefers-reduced-motion: reduce)').matches,EASE='cubic-bezier(.22,1,.36,1)';
+const money=n=>(Number(n)||0).toFixed(2).replace('.',',')+' €';
+function tickText(el,txt){txt=String(txt);if(!el||el.textContent===txt)return;el.textContent=txt;el.classList.remove('tick');void el.offsetWidth;el.classList.add('tick')}
+function flyEmoji(el,emoji){
+  const fab=document.getElementById('cartFab');if(RM()||!fab||!el||!Element.prototype.animate)return;
+  const a=el.getBoundingClientRect(),b=fab.getBoundingClientRect(),ax=a.left+a.width/2,ay=a.top+a.height/2,f=document.createElement('div');
+  f.className='fly';f.textContent=emoji;f.style.cssText='left:'+(ax-22)+'px;top:'+(ay-22)+'px';document.body.appendChild(f);
+  const dx=b.left+b.width/2-ax,dy=b.top+b.height/2-ay;
+  f.animate([{transform:'translate(0,0) scale(1.4)',opacity:1},{transform:'translate('+dx*.45+'px,'+(dy*.45-80)+'px) scale(1.3)',opacity:1,offset:.45},{transform:'translate('+dx+'px,'+dy+'px) scale(.25)',opacity:.3}],{duration:720,easing:'cubic-bezier(.45,0,.25,1)'}).finished
+   .then(()=>{f.remove();fab.classList.remove('bump');void fab.offsetWidth;fab.classList.add('bump')}).catch(()=>f.remove());
+}
+/* --- Panier coulissant (couche hors render(), branché sur shopCart) --- */
+function ensureCart(){
+  let L=document.getElementById('cartLayer');if(L)return L;
+  L=document.createElement('div');L.id='cartLayer';L.className='v37-layer';
+  L.innerHTML='<div class="v37-back"></div><aside class="cart-drawer" role="dialog" aria-modal="true" aria-label="Panier"><header class="cd-head"><h2>Ton panier 🛒</h2><button class="close" aria-label="Fermer">×</button></header><div class="cd-scroll"><div class="cd-list"></div><div class="cd-empty"><div class="cd-e-ico">🫖</div><b>Ton panier est vide</b><p>Ajoute une boisson depuis la Boutique.</p></div></div><footer class="cd-foot"><div class="cd-total"><span>Total</span><b id="cdTotal">0,00 €</b></div><button class="btn primary cd-go">Commander →</button></footer></aside>';
+  document.body.appendChild(L);
+  L.querySelector('.v37-back').onclick=()=>closeCart();L.querySelector('.close').onclick=()=>closeCart();
+  L.querySelector('.cd-go').onclick=()=>{if(!shopCart.length)return;openOrderForm();closeCart()};
+  L.querySelector('.cd-list').addEventListener('click',e=>{const b=e.target.closest('button[data-d]');if(!b)return;const r=b.closest('.ci');if(r)drawerQty(r.dataset.id,+b.dataset.d)});
+  let x0=null,y0=0,dx=0;const d=L.querySelector('.cart-drawer');
+  d.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY;dx=0},{passive:true});
+  d.addEventListener('touchmove',e=>{if(x0===null)return;const mx=e.touches[0].clientX-x0,my=e.touches[0].clientY-y0;if(Math.abs(mx)>Math.abs(my)&&mx>0){dx=mx;d.style.transition='none';d.style.transform='translate3d('+mx+'px,0,0)'}},{passive:true});
+  d.addEventListener('touchend',()=>{if(x0===null)return;x0=null;d.style.transition='';d.style.transform='';if(dx>90)closeCart();dx=0});
+  return L;
+}
+function paintCart(){
+  const L=document.getElementById('cartLayer');if(!L)return;const list=L.querySelector('.cd-list'),ids=new Set(shopCart.map(i=>i.id));
+  [...list.children].forEach(r=>{if(!ids.has(r.dataset.id))r.remove()});
+  shopCart.forEach((it,idx)=>{
+    let r=list.querySelector('.ci[data-id="'+it.id+'"]');
+    if(!r){r=document.createElement('div');r.className='ci new';r.dataset.id=it.id;r.style.setProperty('--i',idx);
+      r.innerHTML='<div class="ci-in"><div class="ci-card"><span class="ci-ico">'+esc(it.emoji||'🍵')+'</span><div class="ci-main"><b>'+esc(it.name)+'</b><small class="ci-unit"></small></div><div class="ci-qty"><button type="button" data-d="-1" aria-label="Moins">−</button><span class="q"></span><button type="button" data-d="1" aria-label="Plus">+</button></div><b class="ci-line"></b></div></div>';
+      list.appendChild(r);setTimeout(()=>r.classList.remove('new'),600)}
+    r.querySelector('.ci-unit').textContent=money(it.price)+' / unité';tickText(r.querySelector('.q'),it.qty);tickText(r.querySelector('.ci-line'),money(it.price*it.qty));
+  });
+  L.querySelector('.cd-empty').classList.toggle('show',!shopCart.length);
+  tickText(L.querySelector('#cdTotal'),money(shopCart.reduce((a,i)=>a+i.price*i.qty,0)));L.querySelector('.cd-go').disabled=!shopCart.length;
+}
+function drawerQty(id,d){
+  const it=shopCart.find(x=>x.id===id);if(!it)return;
+  if(it.qty+d<=0){const r=document.querySelector('#cartLayer .ci[data-id="'+id+'"]');if(r&&!RM()){r.classList.add('out');setTimeout(()=>changeCart(id,-it.qty),360)}else changeCart(id,-it.qty)}
+  else changeCart(id,d);
+}
+function openCart(){
+  if(psOpen)return;const L=ensureCart();paintCart();const list=L.querySelector('.cd-list');list.classList.remove('go');void list.offsetWidth;list.classList.add('go');
+  const f=document.getElementById('cartFab');if(f){f.classList.remove('bump');void f.offsetWidth;f.classList.add('bump')}
+  L.classList.add('open');syncModalLock();const dr=L.querySelector('.cart-drawer');dr.setAttribute('tabindex','-1');setTimeout(()=>dr.focus({preventScroll:true}),60);
+}
+function closeCart(){const L=document.getElementById('cartLayer');if(!L||!L.classList.contains('open'))return;L.classList.remove('open');syncModalLock()}
+const _changeCart=changeCart;changeCart=function(){const r=_changeCart.apply(this,arguments);paintCart();return r};
+const _addV36=addToCart;addToCart=function(){const r=_addV36.apply(this,arguments);paintCart();return r};
+/* --- Fiche produit : la carte se déploie en fiche (clip-path) et l'emoji voyage (FLIP) --- */
+let psOpen=null;
+function openProduct(card){
+  if(psOpen)return;const id=card.dataset.pid,p=SHOP_PRODUCTS.find(x=>x.id===id);if(!p)return;
+  const L=document.createElement('div');L.className='v37-layer ps-layer';
+  L.innerHTML='<div class="v37-back"></div><section class="ps-panel" role="dialog" aria-modal="true" aria-label="'+esc(p.name)+'"><button class="close ps-close" aria-label="Fermer">×</button><div class="ps-hero"><span class="ps-ico">'+p.emoji+'</span></div><div class="ps-body"><h2 class="ps-name">'+esc(p.name)+'</h2><p class="ps-desc">'+esc(p.desc)+'</p><div class="ps-price">'+money(p.price)+'</div><div class="ps-chips"><span>💶 Prix par unité</span><span>🧾 Paiement via PayPal, validé par l’admin</span></div><div class="ps-row"><div class="ci-qty"><button type="button" data-d="-1" aria-label="Moins">−</button><span class="q">1</span><button type="button" data-d="1" aria-label="Plus">+</button></div><button class="btn primary ps-add" type="button">Ajouter · <span class="ps-sum">'+money(p.price)+'</span></button></div></div></section>';
+  document.body.appendChild(L);psOpen={id,L,n:1,p};
+  const panel=L.querySelector('.ps-panel'),ico=L.querySelector('.ps-ico'),src=card.querySelector('.iconbox');
+  L.classList.add('open');syncModalLock();
+  if(!RM()&&panel.animate&&src){
+    const pr=panel.getBoundingClientRect(),cr=card.getBoundingClientRect(),ir=src.getBoundingClientRect(),hr=ico.getBoundingClientRect();
+    panel.animate([{clipPath:'inset('+(cr.top-pr.top)+'px '+(pr.right-cr.right)+'px '+(pr.bottom-cr.bottom)+'px '+(cr.left-pr.left)+'px round 24px)'},{clipPath:'inset(0px 0px 0px 0px round 30px)'}],{duration:560,easing:EASE,fill:'backwards'});
+    ico.animate([{transform:'translate('+(ir.left+ir.width/2-hr.left-hr.width/2)+'px,'+(ir.top+ir.height/2-hr.top-hr.height/2)+'px) scale(.48)'},{transform:'none'}],{duration:600,easing:EASE,fill:'backwards'});
+    src.style.visibility='hidden';
+  }
+  L.querySelector('.v37-back').onclick=closeProduct;L.querySelector('.ps-close').onclick=closeProduct;
+  panel.addEventListener('click',e=>{const b=e.target.closest('button[data-d]');if(!b)return;psOpen.n=Math.max(1,Math.min(20,psOpen.n+ +b.dataset.d));tickText(panel.querySelector('.q'),psOpen.n);tickText(panel.querySelector('.ps-sum'),money(p.price*psOpen.n))});
+  panel.querySelector('.ps-add').onclick=e=>{
+    const b=e.currentTarget;if(b.classList.contains('ok'))return;for(let k=0;k<psOpen.n;k++)_addToCart(id);paintCart();
+    flyEmoji(ico,p.emoji);b.classList.add('ok');b.textContent='✓ Ajouté';setTimeout(closeProduct,460);
+  };
+  panel.setAttribute('tabindex','-1');setTimeout(()=>panel.focus({preventScroll:true}),80);
+}
+function closeProduct(){
+  if(!psOpen)return;const {id,L}=psOpen;psOpen=null;
+  const panel=L.querySelector('.ps-panel'),ico=L.querySelector('.ps-ico'),card=document.querySelector('.shop-product[data-pid="'+id+'"]'),src=card&&card.querySelector('.iconbox');
+  const done=()=>{L.remove();document.querySelectorAll('.shop-product .iconbox').forEach(e=>e.style.visibility='');syncModalLock()};
+  L.classList.add('leaving');
+  if(RM()||!panel.animate||!card){L.classList.remove('open');setTimeout(done,50);return}
+  const pr=panel.getBoundingClientRect(),cr=card.getBoundingClientRect(),ir=src.getBoundingClientRect(),hr=ico.getBoundingClientRect();
+  panel.querySelector('.ps-body').animate([{opacity:1},{opacity:0}],{duration:160,fill:'forwards'});
+  panel.animate([{clipPath:'inset(0px 0px 0px 0px round 30px)'},{clipPath:'inset('+(cr.top-pr.top)+'px '+(pr.right-cr.right)+'px '+(pr.bottom-cr.bottom)+'px '+(cr.left-pr.left)+'px round 24px)'}],{duration:440,easing:EASE,fill:'forwards'});
+  ico.animate([{transform:'none'},{transform:'translate('+(ir.left+ir.width/2-hr.left-hr.width/2)+'px,'+(ir.top+ir.height/2-hr.top-hr.height/2)+'px) scale(.48)'}],{duration:440,easing:EASE,fill:'forwards'});
+  setTimeout(done,450);
+}
+document.addEventListener('click',e=>{const t=e.target;if(!t.closest)return;const c=t.closest('.shop-product');if(c&&!t.closest('.shop-add')&&tab==='shop'&&!modal)openProduct(c)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeProduct();closeCart()}});
+/* --- Parallaxe subtile (un seul listener rAF, uniquement transform/translate) --- */
+(function(){
+  const host=document.body||document.documentElement,fx=document.createElement('div');fx.id='bgFx';fx.setAttribute('aria-hidden','true');fx.innerHTML='<i class="a"></i><i class="b"></i>';host.appendChild(fx);
+  let tk=false;addEventListener('scroll',()=>{if(tk||RM())return;tk=true;requestAnimationFrame(()=>{tk=false;const y=scrollLocked?lockedY:(window.scrollY||0);fx.style.setProperty('--sy',y);const h=document.querySelector('.shop-hero');if(h)h.style.setProperty('--py',(Math.min(y,600)*.1).toFixed(1)+'px')})},{passive:true});
+})();
 
 let orderSubmitting=false;
 let qrPendingUrl="";
@@ -1000,7 +1144,7 @@ async function adminEditProduct(id){const r=await adminListProducts();const p=(r
 async function adminDeleteProduct(id){if(!confirm('Retirer cet article de la boutique ?'))return;const r=await adminRpcSafe('admin_delete_shop_product',{p_id:id});if(r.error){showToast('Produit : '+r.error.message);return}await loadShopProducts();showToast('Article retiré ✅');openAdminProducts()}
 
 function loyaltyCardHtml(){const n=Math.max(0,Math.min(6,Number(state.loyaltyStamps)||0));const pct=(n/6)*100;const left=Math.max(0,6-n);return `<div class="card loyalty-card" style="border:2px solid #d97706;background:linear-gradient(135deg,#fff7ed,#fffbeb);overflow:hidden"><div class="row between"><div><h3 style="margin:0">🍵 Carte fidélité Schutz Tea</h3><div class="sub">${n===6?'Carte complète 🎉':'Encore '+left+' tampon'+(left>1?'s':'')+' pour la carte complète'}</div></div><b style="font-size:20px">${n}/6</b></div><div class="loyalty-progress" style="margin-top:12px"><div style="width:${pct}%"></div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:14px">${[0,1,2,3,4,5].map(i=>`<div class="stamp ${i<n?'on':''}" style="aspect-ratio:1;border-radius:50%;border:2px dashed #d97706;display:flex;align-items:center;justify-content:center;font-size:26px;background:${i<n?'#fed7aa':'white'}">${i<n?'🍵':'＋'}</div>`).join('')}</div><p class="sub" style="margin-bottom:0">Les tampons sont ajoutés manuellement par l’administrateur.</p></div>`}
-function shopPage(){const total=shopCart.reduce((s,i)=>s+i.price*i.qty,0);return `<main class="page"><h1 class="title">Boutique 🍵</h1>${loyaltyCardHtml()}<div class="card"><b>📦 Mes commandes</b><div id="myOrders"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div><div class="order-live"><i></i><span>Suivi automatique activé · le statut se met à jour automatiquement.</span></div></div><div class="card"><b>⭐ Avis sur les commandes</b><p class="sub">Les avis publiés par les clients sont visibles ici.</p><div id="publicReviews"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div></div><div class="card gradient shop-hero"><h2 style="margin-top:0">Schutz Tea 🇹🇷</h2><p style="opacity:.9">Le thé coûte <b>0,20 €</b> et le café <b>0,50 €</b> par unité. Choisis ta boisson et la quantité.</p><p style="opacity:.9">Paiement : tu envoies la commande, puis tu es redirigé vers PayPal. Le paiement et la validation sont vérifiés manuellement par l’administrateur.</p></div><div class="section-title">Nos boissons ☕🫖</div><div class="shop-grid">${SHOP_PRODUCTS.map(p=>`<div class="list-item shop-product"><div class="iconbox">${p.emoji}</div><div class="main"><b>${esc(p.name)}</b><div class="sub">${esc(p.desc)}</div><b>${p.price.toFixed(2)} €</b></div><button class="btn primary small shop-add" onclick="addToCart('${p.id}')">＋</button></div>`).join('')}</div><div class="section-title" id="cartAnchor">Ta commande</div>${shopCart.length?shopCart.map(i=>`<div class="list-item"><div class="main"><b>${esc(i.name)}</b><div class="sub">${i.price.toFixed(2)} € × ${i.qty}</div></div><button class="btn gray small" onclick="changeCart('${i.id}',-1)">−</button><b>${i.qty}</b><button class="btn gray small" onclick="changeCart('${i.id}',1)">＋</button></div>`).join(''):`<div class="empty">Ton panier est vide 🛒</div>`}<div class="card"><div class="row between"><b>Total</b><b>${total.toFixed(2)} €</b></div><button class="btn primary full" style="margin-top:12px" onclick="openOrderForm()" ${shopCart.length?'':'disabled'}>📩 Commander & payer avec PayPal</button><p class="sub" style="margin-bottom:0;margin-top:8px">Paiement PayPal : <b>gwschutz88@gmail.com</b></p></div></main>`}
+function shopPage(){const total=shopCart.reduce((s,i)=>s+i.price*i.qty,0);return `<main class="page"><h1 class="title">Boutique 🍵</h1>${loyaltyCardHtml()}<div class="card"><b>📦 Mes commandes</b><div id="myOrders"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div><div class="order-live"><i></i><span>Suivi automatique activé · le statut se met à jour automatiquement.</span></div></div><div class="card"><b>⭐ Avis sur les commandes</b><p class="sub">Les avis publiés par les clients sont visibles ici.</p><div id="publicReviews"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div></div><div class="card gradient shop-hero"><h2 style="margin-top:0">Schutz Tea 🇹🇷</h2><p style="opacity:.9">Le thé coûte <b>0,20 €</b> et le café <b>0,50 €</b> par unité. Choisis ta boisson et la quantité.</p><p style="opacity:.9">Paiement : tu envoies la commande, puis tu es redirigé vers PayPal. Le paiement et la validation sont vérifiés manuellement par l’administrateur.</p></div><div class="section-title">Nos boissons ☕🫖</div><div class="shop-grid">${SHOP_PRODUCTS.map(p=>`<div class="list-item shop-product" data-pid="${p.id}"><div class="iconbox">${p.emoji}</div><div class="main"><b>${esc(p.name)}</b><div class="sub">${esc(p.desc)}</div><b>${p.price.toFixed(2)} €</b></div><button class="btn primary small shop-add" onclick="addToCart('${p.id}')">＋</button></div>`).join('')}</div><div class="section-title" id="cartAnchor">Ta commande</div>${shopCart.length?shopCart.map(i=>`<div class="list-item"><div class="main"><b>${esc(i.name)}</b><div class="sub">${i.price.toFixed(2)} € × ${i.qty}</div></div><button class="btn gray small" onclick="changeCart('${i.id}',-1)">−</button><b>${i.qty}</b><button class="btn gray small" onclick="changeCart('${i.id}',1)">＋</button></div>`).join(''):`<div class="empty">Ton panier est vide 🛒</div>`}<div class="card"><div class="row between"><b>Total</b><b>${total.toFixed(2)} €</b></div><button class="btn primary full" style="margin-top:12px" onclick="openOrderForm()" ${shopCart.length?'':'disabled'}>📩 Commander & payer avec PayPal</button><p class="sub" style="margin-bottom:0;margin-top:8px">Paiement PayPal : <b>gwschutz88@gmail.com</b></p></div></main>`}
 const PAYPAL_LINK='https://www.paypal.me/gschutz88';
 function stopOrderLive(){if(orderRefreshTimer){clearInterval(orderRefreshTimer);orderRefreshTimer=null}if(orderChannel&&supabaseClient){try{supabaseClient.removeChannel(orderChannel)}catch{}orderChannel=null}}
 function startOrderLive(){stopOrderLive();if(!supabaseClient||!authUser||tab!=='shop')return;orderRefreshTimer=setInterval(()=>{if(tab==='shop'&&document.getElementById('myOrders'))loadMyOrders(true)},12000);try{orderChannel=supabaseClient.channel('schutz-orders-'+authUser.id).on('postgres_changes',{event:'*',schema:'public',table:'shop_orders',filter:`user_id=eq.${authUser.id}`},()=>{if(tab==='shop')loadMyOrders(true)}).subscribe()}catch(e){console.warn('Suivi temps réel commandes',e)}}
