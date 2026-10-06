@@ -165,6 +165,22 @@ input,textarea,select{font-size:16px;border-color:var(--border);transition:borde
 .iconbox{background:linear-gradient(135deg,rgba(79,70,229,.10),rgba(236,72,153,.10));transition:transform .3s var(--ease)}.shop-product:hover .iconbox{transform:rotate(-6deg) scale(1.08)}
 .toast{-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .tab-enter{animation:v33Tab .3s var(--ease) both!important}@keyframes v33Tab{from{opacity:0;transform:translateY(16px) scale(.99)}to{opacity:1;transform:none}}
+/* ===== V34 : ambiance, skeletons, ripple, reveal ===== */
+html,body{max-width:100%;overflow-x:clip}img,video,svg{max-width:100%}
+body:before{content:'';position:fixed;inset:-25%;z-index:-1;pointer-events:none;background:radial-gradient(40% 30% at 20% 20%,rgba(79,70,229,.14),transparent 70%),radial-gradient(35% 30% at 85% 15%,rgba(236,72,153,.12),transparent 70%),radial-gradient(40% 35% at 60% 90%,rgba(147,51,234,.10),transparent 70%);animation:v34Drift 40s ease-in-out infinite alternate;will-change:transform}
+@keyframes v34Drift{to{transform:translate3d(4%,3%,0) scale(1.08)}}
+:focus-visible{outline:2px solid var(--secondary);outline-offset:2px;border-radius:10px}
+.skel{height:58px;border-radius:14px;margin:8px 0;background:linear-gradient(100deg,rgba(148,163,184,.14) 30%,rgba(148,163,184,.30) 50%,rgba(148,163,184,.14) 70%);background-size:300% 100%;animation:v34Skel 1.3s linear infinite}.skel.s{height:40px;width:70%}
+@keyframes v34Skel{from{background-position:100% 0}to{background-position:-100% 0}}
+.btn,.nav button{position:relative;overflow:hidden}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);transform:scale(0);opacity:1;pointer-events:none;animation:v34Ripple .55s ease-out forwards}
+@keyframes v34Ripple{to{transform:scale(2.4);opacity:0}}
+.rv{opacity:0;transform:translateY(26px);animation:none!important;transition:opacity .55s var(--ease),transform .55s var(--ease)}.rv.in{opacity:1;transform:none}
+.toast{animation:v34Toast .35s var(--ease) both}@keyframes v34Toast{from{opacity:0;transform:translate(-50%,-18px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
+.btn.primary:before{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.28) 50%,transparent 65%);transform:translateX(-120%);transition:transform .7s var(--ease);pointer-events:none}
+@media(hover:hover){.btn.primary:hover:before{transform:translateX(120%)}}
+.nav button.active .ico{filter:drop-shadow(0 4px 8px rgba(147,51,234,.35))}
+@media(prefers-reduced-motion:reduce){body:before{animation:none}.rv{opacity:1;transform:none}}
 </style>
 </head>
 <body data-version="V19">
@@ -207,6 +223,26 @@ function burst(emoji){
   for(let i=0;i<12;i++){const e=document.createElement('span'),a=i/12*6.283,d=70+Math.random()*60;e.textContent=emoji;e.style.setProperty('--dx',Math.cos(a)*d+'px');e.style.setProperty('--dy',Math.sin(a)*d-30+'px');w.appendChild(e)}
   document.body.appendChild(w);setTimeout(()=>w.remove(),1000);
 }
+
+/* ===== V34 : reveal au scroll, ripple, compteurs (léger, sans bibliothèque) ===== */
+let revealIO=null,lastFxTab=null;
+function setupFx(){
+  if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  if(!revealIO)revealIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');revealIO.unobserve(e.target)}}),{rootMargin:'0px 0px -8% 0px',threshold:.05});
+  const vh=window.innerHeight;
+  document.querySelectorAll('.page .card,.page .list-item').forEach(el=>{if(el.closest('.modal')||el.classList.contains('in'))return;if(el.getBoundingClientRect().top>vh*.95){el.classList.add('rv');revealIO.observe(el)}});
+  if(lastFxTab!==tab){lastFxTab=tab;document.querySelectorAll('.stat b').forEach(countUp)}
+}
+function countUp(el){
+  const t=el.textContent.trim();if(!/^\d{1,6}$/.test(t))return;const end=+t,t0=performance.now(),dur=650;
+  if(end<2)return;const tick=n=>{const k=Math.min(1,(n-t0)/dur);el.textContent=Math.round(end*(1-Math.pow(1-k,3)));if(k<1)requestAnimationFrame(tick)};requestAnimationFrame(tick);
+}
+document.addEventListener('pointerdown',e=>{
+  const b=e.target.closest&&e.target.closest('.btn,.nav button');if(!b||b.disabled||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const r=b.getBoundingClientRect(),d=Math.max(r.width,r.height),s=document.createElement('span');
+  s.className='ripple';s.style.cssText='width:'+d+'px;height:'+d+'px;left:'+(e.clientX-r.left-d/2)+'px;top:'+(e.clientY-r.top-d/2)+'px';
+  b.appendChild(s);setTimeout(()=>s.remove(),600);
+},{passive:true});
 
 let orderSubmitting=false;
 let qrPendingUrl="";
@@ -635,7 +671,7 @@ window.addEventListener("pagehide",()=>{
 });
 
 const KEEP_IDS=['myOrders','publicReviews'];let keptBoxes={};
-function snapshotBoxes(){KEEP_IDS.forEach(id=>{const el=document.getElementById(id);if(el&&el.innerHTML&&!/^\s*(<div class="sub">)?Chargement/.test(el.innerHTML))keptBoxes[id]=el.innerHTML})}
+function snapshotBoxes(){KEEP_IDS.forEach(id=>{const el=document.getElementById(id);if(el&&el.innerHTML&&!/^\s*(<div class="sub">Chargement|<div class="skel")/.test(el.innerHTML))keptBoxes[id]=el.innerHTML})}
 function restoreBoxes(){if(tab!=='shop')return;KEEP_IDS.forEach(id=>{const el=document.getElementById(id);if(el&&keptBoxes[id])el.innerHTML=keptBoxes[id]})}
 function render(){
  const r=document.getElementById("root");
@@ -668,7 +704,7 @@ function render(){
  if(window.MathJax) MathJax.typesetPromise().catch(()=>{});
  setTimeout(renderPendingQRCode,0);
  if(tab==="review") renderReview();
- restoreBoxes();syncModalLock();
+ restoreBoxes();syncModalLock();setupFx();
 }
 function toast(){return `<div class="toast">${esc(toastMsg)}</div>`}
 
@@ -824,7 +860,7 @@ async function adminEditProduct(id){const r=await adminListProducts();const p=(r
 async function adminDeleteProduct(id){if(!confirm('Retirer cet article de la boutique ?'))return;const r=await adminRpcSafe('admin_delete_shop_product',{p_id:id});if(r.error){showToast('Produit : '+r.error.message);return}await loadShopProducts();showToast('Article retiré ✅');openAdminProducts()}
 
 function loyaltyCardHtml(){const n=Math.max(0,Math.min(6,Number(state.loyaltyStamps)||0));const pct=(n/6)*100;const left=Math.max(0,6-n);return `<div class="card loyalty-card" style="border:2px solid #d97706;background:linear-gradient(135deg,#fff7ed,#fffbeb);overflow:hidden"><div class="row between"><div><h3 style="margin:0">🍵 Carte fidélité Schutz Tea</h3><div class="sub">${n===6?'Carte complète 🎉':'Encore '+left+' tampon'+(left>1?'s':'')+' pour la carte complète'}</div></div><b style="font-size:20px">${n}/6</b></div><div class="loyalty-progress" style="margin-top:12px"><div style="width:${pct}%"></div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:14px">${[0,1,2,3,4,5].map(i=>`<div class="stamp ${i<n?'on':''}" style="aspect-ratio:1;border-radius:50%;border:2px dashed #d97706;display:flex;align-items:center;justify-content:center;font-size:26px;background:${i<n?'#fed7aa':'white'}">${i<n?'🍵':'＋'}</div>`).join('')}</div><p class="sub" style="margin-bottom:0">Les tampons sont ajoutés manuellement par l’administrateur.</p></div>`}
-function shopPage(){const total=shopCart.reduce((s,i)=>s+i.price*i.qty,0);return `<main class="page"><h1 class="title">Boutique 🍵</h1>${loyaltyCardHtml()}<div class="card"><b>📦 Mes commandes</b><div id="myOrders">Chargement…</div><div class="order-live"><i></i><span>Suivi automatique activé · le statut se met à jour automatiquement.</span></div></div><div class="card"><b>⭐ Avis sur les commandes</b><p class="sub">Les avis publiés par les clients sont visibles ici.</p><div id="publicReviews">Chargement…</div></div><div class="card gradient shop-hero"><h2 style="margin-top:0">Schutz Tea 🇹🇷</h2><p style="opacity:.9">Le thé coûte <b>0,20 €</b> et le café <b>0,50 €</b> par unité. Choisis ta boisson et la quantité.</p><p style="opacity:.9">Paiement : tu envoies la commande, puis tu es redirigé vers PayPal. Le paiement et la validation sont vérifiés manuellement par l’administrateur.</p></div><div class="section-title">Nos boissons ☕🫖</div>${SHOP_PRODUCTS.map(p=>`<div class="list-item shop-product"><div class="iconbox">${p.emoji}</div><div class="main"><b>${esc(p.name)}</b><div class="sub">${esc(p.desc)}</div><b>${p.price.toFixed(2)} €</b></div><button class="btn primary small shop-add" onclick="addToCart('${p.id}')">＋</button></div>`).join('')}<div class="section-title">Ta commande</div>${shopCart.length?shopCart.map(i=>`<div class="list-item"><div class="main"><b>${esc(i.name)}</b><div class="sub">${i.price.toFixed(2)} € × ${i.qty}</div></div><button class="btn gray small" onclick="changeCart('${i.id}',-1)">−</button><b>${i.qty}</b><button class="btn gray small" onclick="changeCart('${i.id}',1)">＋</button></div>`).join(''):`<div class="empty">Ton panier est vide 🛒</div>`}<div class="card"><div class="row between"><b>Total</b><b>${total.toFixed(2)} €</b></div><button class="btn primary full" style="margin-top:12px" onclick="openOrderForm()" ${shopCart.length?'':'disabled'}>📩 Commander & payer avec PayPal</button><p class="sub" style="margin-bottom:0;margin-top:8px">Paiement PayPal : <b>gwschutz88@gmail.com</b></p></div></main>`}
+function shopPage(){const total=shopCart.reduce((s,i)=>s+i.price*i.qty,0);return `<main class="page"><h1 class="title">Boutique 🍵</h1>${loyaltyCardHtml()}<div class="card"><b>📦 Mes commandes</b><div id="myOrders"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div><div class="order-live"><i></i><span>Suivi automatique activé · le statut se met à jour automatiquement.</span></div></div><div class="card"><b>⭐ Avis sur les commandes</b><p class="sub">Les avis publiés par les clients sont visibles ici.</p><div id="publicReviews"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div></div><div class="card gradient shop-hero"><h2 style="margin-top:0">Schutz Tea 🇹🇷</h2><p style="opacity:.9">Le thé coûte <b>0,20 €</b> et le café <b>0,50 €</b> par unité. Choisis ta boisson et la quantité.</p><p style="opacity:.9">Paiement : tu envoies la commande, puis tu es redirigé vers PayPal. Le paiement et la validation sont vérifiés manuellement par l’administrateur.</p></div><div class="section-title">Nos boissons ☕🫖</div>${SHOP_PRODUCTS.map(p=>`<div class="list-item shop-product"><div class="iconbox">${p.emoji}</div><div class="main"><b>${esc(p.name)}</b><div class="sub">${esc(p.desc)}</div><b>${p.price.toFixed(2)} €</b></div><button class="btn primary small shop-add" onclick="addToCart('${p.id}')">＋</button></div>`).join('')}<div class="section-title">Ta commande</div>${shopCart.length?shopCart.map(i=>`<div class="list-item"><div class="main"><b>${esc(i.name)}</b><div class="sub">${i.price.toFixed(2)} € × ${i.qty}</div></div><button class="btn gray small" onclick="changeCart('${i.id}',-1)">−</button><b>${i.qty}</b><button class="btn gray small" onclick="changeCart('${i.id}',1)">＋</button></div>`).join(''):`<div class="empty">Ton panier est vide 🛒</div>`}<div class="card"><div class="row between"><b>Total</b><b>${total.toFixed(2)} €</b></div><button class="btn primary full" style="margin-top:12px" onclick="openOrderForm()" ${shopCart.length?'':'disabled'}>📩 Commander & payer avec PayPal</button><p class="sub" style="margin-bottom:0;margin-top:8px">Paiement PayPal : <b>gwschutz88@gmail.com</b></p></div></main>`}
 const PAYPAL_LINK='https://www.paypal.me/gschutz88';
 function stopOrderLive(){if(orderRefreshTimer){clearInterval(orderRefreshTimer);orderRefreshTimer=null}if(orderChannel&&supabaseClient){try{supabaseClient.removeChannel(orderChannel)}catch{}orderChannel=null}}
 function startOrderLive(){stopOrderLive();if(!supabaseClient||!authUser||tab!=='shop')return;orderRefreshTimer=setInterval(()=>{if(tab==='shop'&&document.getElementById('myOrders'))loadMyOrders(true)},12000);try{orderChannel=supabaseClient.channel('schutz-orders-'+authUser.id).on('postgres_changes',{event:'*',schema:'public',table:'shop_orders',filter:`user_id=eq.${authUser.id}`},()=>{if(tab==='shop')loadMyOrders(true)}).subscribe()}catch(e){console.warn('Suivi temps réel commandes',e)}}
@@ -833,7 +869,7 @@ async function loadMyOrders(silent=false){
   const getBox=()=>document.getElementById('myOrders');
   let box=getBox();
   if(!box)return;
-  if(!silent) box.innerHTML='<div class="sub">Chargement…</div>';
+  if(!silent) box.innerHTML='<div class="skel"></div><div class="skel s"></div><div class="skel"></div>';
   try{
     const session=await supabaseClient.auth.getSession();
     const user=authUser || session?.data?.session?.user || null;
