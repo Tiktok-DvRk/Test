@@ -242,6 +242,47 @@ body{background:radial-gradient(70% 45% at 8% 0%,rgba(124,58,237,.16),transparen
 .modal{border-radius:var(--r-xl)}
 @media(max-width:520px){.modal{border-radius:var(--r-xl) var(--r-xl) 0 0}}
 @media(prefers-reduced-motion:reduce){.tab-enter>*{animation:none}.card.gradient:before,.card.shop-hero:before,.rank.r1:after{animation:none}}
+/* ===== V36 : corrections racines + Boutique ===== */
+/* (1) Spawn à droite : la transition de vue interpolait la boîte de l'ancienne page vers celle de la nouvelle (largeurs différentes
+   car .page se rétrécissait au contenu). Largeur stable + plus d'interpolation de géométrie. */
+.page{width:100%;box-sizing:border-box}
+::view-transition-group(page),::view-transition-group(root){animation:none}
+::view-transition-image-pair(page){isolation:auto}
+/* (2) Aura des emojis : un seul système, ancré sur le conteneur de l'emoji (.ico), derrière lui. Les anciennes règles sont neutralisées. */
+.nav button.active:before{content:none!important;display:none!important}
+.nav button.active{color:var(--secondary)}
+.nav .ico{position:relative;display:grid;place-items:center;width:46px;height:46px;font-size:24px;line-height:1;isolation:isolate;margin:0 auto;filter:none!important;animation:none!important;transform:none!important}
+.nav .ico:before{content:'';position:absolute;inset:0;z-index:-1;border-radius:16px;background:linear-gradient(135deg,rgba(79,70,229,.22),rgba(236,72,153,.22));box-shadow:0 6px 18px rgba(124,58,237,.28);opacity:0;transform:scale(.55);transition:opacity var(--t-smooth) var(--ease-premium),transform var(--t-smooth) var(--ease-premium)}
+.nav button.active .ico:before{opacity:1;transform:scale(1)}
+.nav button .ico>*,.nav button .ico{will-change:auto}
+.nav button.active .ico{animation:none}.nav button:active .ico{transform:scale(.9)!important}
+.nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+/* (3) Boutique : grille + cartes interactives */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:14px;perspective:900px}
+.shop-product{flex-direction:column;align-items:stretch;gap:10px;padding:14px;min-height:250px;position:relative;overflow:hidden;transform:perspective(800px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .3s var(--ease-premium),box-shadow .3s;will-change:transform}
+.shop-product:before{content:'';position:absolute;inset:0;background:radial-gradient(220px circle at var(--mx,50%) var(--my,0%),rgba(255,255,255,.75),transparent 60%);opacity:0;transition:opacity .3s;pointer-events:none}
+@media(hover:hover){.shop-product:hover{transform:perspective(800px) translateY(-6px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));box-shadow:var(--shadow-lift)}.shop-product:hover:before{opacity:1}}
+.shop-product:active{transform:scale(.97)}
+.shop-product .iconbox{width:100%!important;height:112px!important;font-size:58px!important;flex:none!important;border-radius:20px!important;animation:v36Bob 4.2s ease-in-out infinite;transition:transform .45s var(--ease-premium)}
+.shop-product:hover .iconbox{transform:scale(1.07) translateY(-2px)}
+.shop-product .main{padding-right:0;display:flex;flex-direction:column;gap:2px;flex:1}.shop-product .main .sub{font-size:13px;line-height:1.3}
+.shop-product .main>b:last-child{margin-top:auto;padding-right:58px}
+.shop-add{position:absolute!important;right:12px;bottom:12px;transition:transform .2s var(--ease-premium)!important}.shop-add:active{transform:scale(.8) rotate(90deg)!important}
+.shop-grid>:nth-child(2) .iconbox{animation-delay:-1.2s}.shop-grid>:nth-child(3) .iconbox{animation-delay:-2.4s}.shop-grid>:nth-child(4) .iconbox{animation-delay:-3.4s}
+@keyframes v36Bob{50%{transform:translateY(-5px) rotate(-2deg)}}
+.tab-enter .shop-product{animation:v36Card .75s var(--ease-premium) both;animation-delay:calc(.14s + var(--n,0)*.08s)}
+.shop-grid>:nth-child(1){--n:0}.shop-grid>:nth-child(2){--n:1}.shop-grid>:nth-child(3){--n:2}.shop-grid>:nth-child(4){--n:3}.shop-grid>:nth-child(5){--n:4}.shop-grid>:nth-child(n+6){--n:5}
+@keyframes v36Card{from{opacity:0;transform:translateY(46px) scale(.9) rotateX(14deg);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+.tab-enter .shop-hero{animation:v36Hero .8s var(--ease-premium) both}@keyframes v36Hero{from{opacity:0;transform:translateY(-18px) scale(.96);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}
+/* Panier flottant + objet qui vole */
+.cart-fab{position:fixed;right:16px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:90;display:flex;align-items:center;gap:8px;min-height:52px;padding:0 18px 0 14px;border:0;border-radius:26px;color:#fff;font:700 15px var(--font-ui);background:var(--aurora);box-shadow:0 14px 34px rgba(124,58,237,.45),0 1px 0 rgba(255,255,255,.3) inset;opacity:0;transform:translateY(20px) scale(.8);pointer-events:none;transition:opacity .35s var(--ease-premium),transform .35s var(--ease-premium)}
+.cart-fab.show{opacity:1;transform:none;pointer-events:auto}.cart-fab .cf-ico{font-size:21px}
+.cart-fab .cf-n{min-width:24px;height:24px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.25);font-family:var(--font-num);font-size:13px}
+.cart-fab .cf-t{font-family:var(--font-num);font-variant-numeric:tabular-nums;opacity:.9}.cart-fab:not(.filled) .cf-t{display:none}
+.cart-fab.bump{animation:v36Bump .5s var(--ease-premium)}@keyframes v36Bump{35%{transform:scale(1.22) rotate(-6deg)}70%{transform:scale(.95)}}
+.cart-fab:active{transform:scale(.94)}
+.fly{position:fixed;z-index:var(--z-toast);width:44px;height:44px;display:grid;place-items:center;font-size:34px;pointer-events:none;will-change:transform,opacity;filter:drop-shadow(0 8px 14px rgba(124,58,237,.4))}
+@media(prefers-reduced-motion:reduce){.shop-product .iconbox{animation:none}.tab-enter .shop-product,.tab-enter .shop-hero{animation:none}.cart-fab{transition:none}.fly{display:none}}
 </style>
 </head>
 <body data-version="V19">
@@ -288,6 +329,7 @@ function burst(emoji){
 /* ===== V34 : reveal au scroll, ripple, compteurs (léger, sans bibliothèque) ===== */
 let revealIO=null,lastFxTab=null;
 function setupFx(){
+  updateCartFab();
   if(!('IntersectionObserver' in window)||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   if(!revealIO)revealIO=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');revealIO.unobserve(e.target)}}),{rootMargin:'0px 0px -8% 0px',threshold:.05});
   const vh=window.innerHeight;
@@ -303,6 +345,38 @@ document.addEventListener('pointerdown',e=>{
   const r=b.getBoundingClientRect(),d=Math.max(r.width,r.height),s=document.createElement('span');
   s.className='ripple';s.style.cssText='width:'+d+'px;height:'+d+'px;left:'+(e.clientX-r.left-d/2)+'px;top:'+(e.clientY-r.top-d/2)+'px';
   b.appendChild(s);setTimeout(()=>s.remove(),600);
+},{passive:true});
+
+/* ===== V36 : Boutique vivante (panier flottant, vol vers le panier, tilt) ===== */
+function updateCartFab(){
+  let f=document.getElementById('cartFab');
+  const on=authUser&&state.pseudo&&tab==='shop';
+  if(!on){if(f)f.classList.remove('show');return}
+  if(!f){f=document.createElement('button');f.id='cartFab';f.className='cart-fab';f.setAttribute('aria-label','Voir ma commande');
+    f.onclick=()=>{const a=document.getElementById('cartAnchor');if(a)a.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})};
+    f.innerHTML='<span class="cf-ico">🛒</span><b class="cf-n">0</b><span class="cf-t">0,00 €</span>';document.body.appendChild(f)}
+  const n=shopCart.reduce((a,i)=>a+i.qty,0),t=shopCart.reduce((a,i)=>a+i.price*i.qty,0);
+  f.querySelector('.cf-n').textContent=n;f.querySelector('.cf-t').textContent=t.toFixed(2).replace('.',',')+' €';f.classList.toggle('filled',n>0);
+  requestAnimationFrame(()=>f.classList.add('show'));
+}
+function flyToCart(id){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!Element.prototype.animate)return;
+  const src=document.querySelector('.shop-add[onclick*="\''+id+'\'"]'),ic=src&&src.closest('.shop-product')&&src.closest('.shop-product').querySelector('.iconbox'),fab=document.getElementById('cartFab');
+  if(!ic||!fab)return;
+  const a=ic.getBoundingClientRect(),b=fab.getBoundingClientRect(),ax=a.left+a.width/2,ay=a.top+a.height/2,el=document.createElement('div');
+  el.className='fly';el.textContent=ic.textContent.trim();el.style.cssText='left:'+(ax-22)+'px;top:'+(ay-22)+'px';document.body.appendChild(el);
+  const dx=b.left+b.width/2-ax,dy=b.top+b.height/2-ay;
+  el.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:'translate('+dx*.45+'px,'+(dy*.45-80)+'px) scale(1.3)',opacity:1,offset:.45},{transform:'translate('+dx+'px,'+dy+'px) scale(.25)',opacity:.3}],{duration:720,easing:'cubic-bezier(.45,0,.25,1)'}).finished
+   .then(()=>{el.remove();fab.classList.remove('bump');void fab.offsetWidth;fab.classList.add('bump')}).catch(()=>el.remove());
+}
+const _addToCart=addToCart;addToCart=function(id){flyToCart(id);return _addToCart.apply(this,arguments)};
+let tiltEl=null,tiltRaf=0,tiltEv=null;
+document.addEventListener('pointermove',e=>{
+  if(e.pointerType!=='mouse')return;const c=e.target.closest&&e.target.closest('.shop-product');
+  if(tiltEl&&tiltEl!==c){tiltEl.style.removeProperty('--rx');tiltEl.style.removeProperty('--ry');tiltEl=null}
+  if(!c)return;tiltEl=c;tiltEv=e;
+  if(!tiltRaf)tiltRaf=requestAnimationFrame(()=>{tiltRaf=0;if(!tiltEl)return;const r=tiltEl.getBoundingClientRect(),x=(tiltEv.clientX-r.left)/r.width-.5,y=(tiltEv.clientY-r.top)/r.height-.5;
+    tiltEl.style.setProperty('--ry',(x*9).toFixed(2)+'deg');tiltEl.style.setProperty('--rx',(-y*9).toFixed(2)+'deg');tiltEl.style.setProperty('--mx',((x+.5)*100).toFixed(1)+'%');tiltEl.style.setProperty('--my',((y+.5)*100).toFixed(1)+'%')});
 },{passive:true});
 
 let orderSubmitting=false;
@@ -926,7 +1000,7 @@ async function adminEditProduct(id){const r=await adminListProducts();const p=(r
 async function adminDeleteProduct(id){if(!confirm('Retirer cet article de la boutique ?'))return;const r=await adminRpcSafe('admin_delete_shop_product',{p_id:id});if(r.error){showToast('Produit : '+r.error.message);return}await loadShopProducts();showToast('Article retiré ✅');openAdminProducts()}
 
 function loyaltyCardHtml(){const n=Math.max(0,Math.min(6,Number(state.loyaltyStamps)||0));const pct=(n/6)*100;const left=Math.max(0,6-n);return `<div class="card loyalty-card" style="border:2px solid #d97706;background:linear-gradient(135deg,#fff7ed,#fffbeb);overflow:hidden"><div class="row between"><div><h3 style="margin:0">🍵 Carte fidélité Schutz Tea</h3><div class="sub">${n===6?'Carte complète 🎉':'Encore '+left+' tampon'+(left>1?'s':'')+' pour la carte complète'}</div></div><b style="font-size:20px">${n}/6</b></div><div class="loyalty-progress" style="margin-top:12px"><div style="width:${pct}%"></div></div><div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:14px">${[0,1,2,3,4,5].map(i=>`<div class="stamp ${i<n?'on':''}" style="aspect-ratio:1;border-radius:50%;border:2px dashed #d97706;display:flex;align-items:center;justify-content:center;font-size:26px;background:${i<n?'#fed7aa':'white'}">${i<n?'🍵':'＋'}</div>`).join('')}</div><p class="sub" style="margin-bottom:0">Les tampons sont ajoutés manuellement par l’administrateur.</p></div>`}
-function shopPage(){const total=shopCart.reduce((s,i)=>s+i.price*i.qty,0);return `<main class="page"><h1 class="title">Boutique 🍵</h1>${loyaltyCardHtml()}<div class="card"><b>📦 Mes commandes</b><div id="myOrders"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div><div class="order-live"><i></i><span>Suivi automatique activé · le statut se met à jour automatiquement.</span></div></div><div class="card"><b>⭐ Avis sur les commandes</b><p class="sub">Les avis publiés par les clients sont visibles ici.</p><div id="publicReviews"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div></div><div class="card gradient shop-hero"><h2 style="margin-top:0">Schutz Tea 🇹🇷</h2><p style="opacity:.9">Le thé coûte <b>0,20 €</b> et le café <b>0,50 €</b> par unité. Choisis ta boisson et la quantité.</p><p style="opacity:.9">Paiement : tu envoies la commande, puis tu es redirigé vers PayPal. Le paiement et la validation sont vérifiés manuellement par l’administrateur.</p></div><div class="section-title">Nos boissons ☕🫖</div>${SHOP_PRODUCTS.map(p=>`<div class="list-item shop-product"><div class="iconbox">${p.emoji}</div><div class="main"><b>${esc(p.name)}</b><div class="sub">${esc(p.desc)}</div><b>${p.price.toFixed(2)} €</b></div><button class="btn primary small shop-add" onclick="addToCart('${p.id}')">＋</button></div>`).join('')}<div class="section-title">Ta commande</div>${shopCart.length?shopCart.map(i=>`<div class="list-item"><div class="main"><b>${esc(i.name)}</b><div class="sub">${i.price.toFixed(2)} € × ${i.qty}</div></div><button class="btn gray small" onclick="changeCart('${i.id}',-1)">−</button><b>${i.qty}</b><button class="btn gray small" onclick="changeCart('${i.id}',1)">＋</button></div>`).join(''):`<div class="empty">Ton panier est vide 🛒</div>`}<div class="card"><div class="row between"><b>Total</b><b>${total.toFixed(2)} €</b></div><button class="btn primary full" style="margin-top:12px" onclick="openOrderForm()" ${shopCart.length?'':'disabled'}>📩 Commander & payer avec PayPal</button><p class="sub" style="margin-bottom:0;margin-top:8px">Paiement PayPal : <b>gwschutz88@gmail.com</b></p></div></main>`}
+function shopPage(){const total=shopCart.reduce((s,i)=>s+i.price*i.qty,0);return `<main class="page"><h1 class="title">Boutique 🍵</h1>${loyaltyCardHtml()}<div class="card"><b>📦 Mes commandes</b><div id="myOrders"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div><div class="order-live"><i></i><span>Suivi automatique activé · le statut se met à jour automatiquement.</span></div></div><div class="card"><b>⭐ Avis sur les commandes</b><p class="sub">Les avis publiés par les clients sont visibles ici.</p><div id="publicReviews"><div class="skel"></div><div class="skel s"></div><div class="skel"></div></div></div><div class="card gradient shop-hero"><h2 style="margin-top:0">Schutz Tea 🇹🇷</h2><p style="opacity:.9">Le thé coûte <b>0,20 €</b> et le café <b>0,50 €</b> par unité. Choisis ta boisson et la quantité.</p><p style="opacity:.9">Paiement : tu envoies la commande, puis tu es redirigé vers PayPal. Le paiement et la validation sont vérifiés manuellement par l’administrateur.</p></div><div class="section-title">Nos boissons ☕🫖</div><div class="shop-grid">${SHOP_PRODUCTS.map(p=>`<div class="list-item shop-product"><div class="iconbox">${p.emoji}</div><div class="main"><b>${esc(p.name)}</b><div class="sub">${esc(p.desc)}</div><b>${p.price.toFixed(2)} €</b></div><button class="btn primary small shop-add" onclick="addToCart('${p.id}')">＋</button></div>`).join('')}</div><div class="section-title" id="cartAnchor">Ta commande</div>${shopCart.length?shopCart.map(i=>`<div class="list-item"><div class="main"><b>${esc(i.name)}</b><div class="sub">${i.price.toFixed(2)} € × ${i.qty}</div></div><button class="btn gray small" onclick="changeCart('${i.id}',-1)">−</button><b>${i.qty}</b><button class="btn gray small" onclick="changeCart('${i.id}',1)">＋</button></div>`).join(''):`<div class="empty">Ton panier est vide 🛒</div>`}<div class="card"><div class="row between"><b>Total</b><b>${total.toFixed(2)} €</b></div><button class="btn primary full" style="margin-top:12px" onclick="openOrderForm()" ${shopCart.length?'':'disabled'}>📩 Commander & payer avec PayPal</button><p class="sub" style="margin-bottom:0;margin-top:8px">Paiement PayPal : <b>gwschutz88@gmail.com</b></p></div></main>`}
 const PAYPAL_LINK='https://www.paypal.me/gschutz88';
 function stopOrderLive(){if(orderRefreshTimer){clearInterval(orderRefreshTimer);orderRefreshTimer=null}if(orderChannel&&supabaseClient){try{supabaseClient.removeChannel(orderChannel)}catch{}orderChannel=null}}
 function startOrderLive(){stopOrderLive();if(!supabaseClient||!authUser||tab!=='shop')return;orderRefreshTimer=setInterval(()=>{if(tab==='shop'&&document.getElementById('myOrders'))loadMyOrders(true)},12000);try{orderChannel=supabaseClient.channel('schutz-orders-'+authUser.id).on('postgres_changes',{event:'*',schema:'public',table:'shop_orders',filter:`user_id=eq.${authUser.id}`},()=>{if(tab==='shop')loadMyOrders(true)}).subscribe()}catch(e){console.warn('Suivi temps réel commandes',e)}}
