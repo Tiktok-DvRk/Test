@@ -25,6 +25,11 @@ window.MathJax = {
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+<script type="module">
+  import { fsrs, Rating } from "https://cdn.jsdelivr.net/npm/ts-fsrs@5.4.2/+esm";
+  window.__SCHUTZ_FSRS__ = { scheduler: fsrs({request_retention:0.9, maximum_interval:36500, enable_fuzz:false, enable_short_term:true}), Rating };
+  window.dispatchEvent(new Event("schutz-fsrs-ready"));
+</script>
 <style>
 *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif;background:#f5f5fa;color:#111827}
 button,input,textarea,select{font:inherit}button{cursor:pointer;border:0}.app{min-height:100vh;padding-bottom:104px}
@@ -1071,7 +1076,7 @@ function openMerge(cid){const c=courseById(cid);if(c.decks.length<2){showToast("
 
 function cloneCard(x){return {...x,id:uid(),reviewLogs:[]}}
 function openDeck(id){const d=deckById(id);modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>${esc(d.name)}</h2><button class="close" onclick="closeModal()">×</button></div>
- <button class="btn orange full" onclick="openChrono('${id}')">⏱️ Lancer le Test Chrono</button><button class="btn primary full" style="margin-top:8px" onclick="startDeckLearning('${id}')">🎓 Apprendre ce deck en autonomie</button><button class="btn secondary full" style="margin-top:8px" onclick="startReviewTarget('deck','${id}',false)">🧠 Réviser ce chapitre avec FSRS</button><button class="btn secondary full" style="margin-top:8px" onclick="shareDeck('${id}')">🌐 Partager ce paquet avec tes potes</button><button class="btn purple full" style="margin-top:8px" onclick="openImport('${id}')">📋 Coller / Importer des cartes</button><button class="btn primary full" style="margin-top:8px" onclick="openAddCard('${id}')">＋ Ajouter une carte</button><button class="btn red full" style="margin-top:8px" onclick="deleteDeck('${id}')">🗑️ Supprimer ce deck entier</button>
+ <button class="btn orange full" onclick="openChrono('${id}')">⏱️ Lancer le Test Chrono</button><button class="btn primary full" style="margin-top:8px" onclick="startDeckLearning('${id}',false)">🎓 Apprendre ce deck</button><button class="btn primary full" style="margin-top:8px" onclick="startDeckLearning('${id}',true)">🔀 Apprendre en mélangeant</button><button class="btn secondary full" style="margin-top:8px" onclick="startReviewTarget('deck','${id}',false,false)">🧠 Réviser ce chapitre avec FSRS</button><button class="btn secondary full" style="margin-top:8px" onclick="startReviewTarget('deck','${id}',false,true)">🔀 FSRS + ordre mélangé</button><button class="btn secondary full" style="margin-top:8px" onclick="shareDeck('${id}')">🌐 Partager ce paquet avec tes potes</button><button class="btn purple full" style="margin-top:8px" onclick="openImport('${id}')">📋 Coller / Importer des cartes</button><button class="btn primary full" style="margin-top:8px" onclick="openAddCard('${id}')">＋ Ajouter une carte</button><button class="btn red full" style="margin-top:8px" onclick="deleteDeck('${id}')">🗑️ Supprimer ce deck entier</button>
  <h3>🃏 Cartes (${d.cards.length})</h3>${d.cards.length?d.cards.map(c=>`<div class="card"><div class="math">❓ ${mathText(c.frontText)}</div>${cardMediaHtml(c,"front") }<div class="sub math">💡 ${mathText(c.backText)}</div>${cardMediaHtml(c,"back") }<div class="row" style="margin-top:8px"><button class="btn secondary small" onclick="openEditCard('${id}','${c.id}')">✏️ Modifier</button><button class="btn red small" onclick="deleteCard('${id}','${c.id}')">🗑️</button></div></div>`).join(""):`<div class="empty">Aucune carte dans ce paquet 📭</div>`}</div></div>`;render()}
 function deleteCard(did,cid){const d=deckById(did);d.cards=d.cards.filter(c=>c.id!==cid);save();openDeck(did)}
 function cardEditorBody(c){
@@ -1161,25 +1166,26 @@ function importPendingDeckShare(){
   c.decks.push({id:uid(),name:deckName,cards:p.cards.map(x=>newCard(String(x.frontText||''),String(x.backText||'')))});sessionStorage.removeItem('pendingDeckShare');save();closeModal();showToast('Paquet ajouté ! 🎉');
 }
 
-let deckLearning={did:null,index:0,revealed:false};
-function startDeckLearning(did){const d=deckById(did);if(!d||!d.cards.length){showToast('Ce deck ne contient aucune carte');return}deckLearning={did,index:0,revealed:false};renderDeckLearning()}
+let deckLearning={did:null,cards:[],index:0,revealed:false,shuffled:false};
+function shuffleCards(cards){const a=[...cards];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startDeckLearning(did,shuffled=false){const d=deckById(did);if(!d||!d.cards.length){showToast('Ce deck ne contient aucune carte');return}deckLearning={did,cards:shuffled?shuffleCards(d.cards):[...d.cards],index:0,revealed:false,shuffled};renderDeckLearning()}
 function renderDeckLearning(){
-  const d=deckById(deckLearning.did); if(!d){closeModal();return}
-  if(deckLearning.index>=d.cards.length){modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><b>🎓 ${esc(d.name)}</b><button class="btn gray small" type="button" onclick="closeModal()">Fermer</button></div><div class="deck-learning-card-wrap"><div class="deck-learning-card" style="text-align:center"><div style="font-size:76px">🎉</div><h2>Deck terminé</h2><p>Tu viens de revoir les ${d.cards.length} cartes.</p><button class="btn primary full" type="button" onclick="deckLearning.index=0;deckLearning.revealed=false;renderDeckLearning()">🔁 Recommencer</button></div></div></div>`;render();return}
-  const c=d.cards[deckLearning.index];
+  const d=deckById(deckLearning.did),cards=deckLearning.cards||[]; if(!d){closeModal();return}
+  if(deckLearning.index>=cards.length){modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><b>🎓 ${esc(d.name)}</b><button class="btn gray small" type="button" onclick="closeModal()">Fermer</button></div><div class="deck-learning-card-wrap"><div class="deck-learning-card" style="text-align:center"><div style="font-size:76px">🎉</div><h2>Deck terminé</h2><p>Tu viens de revoir les ${cards.length} cartes${deckLearning.shuffled?' dans un ordre mélangé':''}.</p><button class="btn primary full" type="button" onclick="deckLearning.index=0;deckLearning.revealed=false;renderDeckLearning()">🔁 Recommencer</button></div></div></div>`;render();return}
+  const c=cards[deckLearning.index];
   const grades=deckLearning.revealed?`<div class="grade-grid" style="width:min(920px,96vw);margin:8px auto 0"><button class="btn red" type="button" onclick="rateDeckLearning('again')">Oublié</button><button class="btn orange" type="button" onclick="rateDeckLearning('hard')">Moyen</button><button class="btn primary" type="button" onclick="rateDeckLearning('good')">Correct</button><button class="btn green" type="button" onclick="rateDeckLearning('easy')">Parfait</button></div>`:'';
   const dx=Number(deckLearning.dragX||0),dy=Number(deckLearning.dragY||0),angle=Math.max(-14,Math.min(14,dx/18));
   const transform=(deckLearning.settling)?`transform:translate3d(${dx}px,${dy}px,0) rotate(${angle}deg);opacity:${Math.max(.35,1-(Math.abs(dx)+Math.abs(dy))/850)};transition:transform .22s ease,opacity .22s ease;`:'';
   const side=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy<0?'up':'down');
   const label=(deckLearning.dragging&&Math.max(Math.abs(dx),Math.abs(dy))>20)?`<div class="deck-swipe-label ${side}" style="opacity:${Math.min(1,Math.max(Math.abs(dx),Math.abs(dy))/90)}">${side==='right'?'PARFAIT':side==='left'?'OUBLIÉ':side==='up'?'CORRECT':'MOYEN'}</div>`:'';
-  modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><div><b>🎓 ${esc(d.name)}</b><div class="sub">Carte ${deckLearning.index+1} / ${d.cards.length}</div></div><button class="btn gray small" type="button" onclick="closeModal()">✕</button></div><div class="progress" style="background:rgba(255,255,255,.18)"><div style="width:${deckLearning.index/d.cards.length*100}%;background:#fff"></div></div><div class="deck-learning-card-wrap"><div class="deck-swipe-stage">${label}<div id="deckLearningCard" class="deck-learning-card ${deckLearning.dragging?'swiping':''}" style="touch-action:none;${transform}" onpointerdown="deckLearningPointerDown(event)" onpointermove="deckLearningPointerMove(event)" onpointerup="deckLearningPointerUp(event)" onpointercancel="deckLearningPointerCancel()"><div class="learning-front learning-content math center ${textSizeClass(c.frontText)}">${mathText(c.frontText)}${cardMediaHtml(c,'front')}</div>${deckLearning.revealed?`<div class="learning-back learning-content math center ${textSizeClass(c.backText)}">${mathText(c.backText)}${cardMediaHtml(c,'back')}</div>`:`<button class="btn primary full" type="button" style="margin-top:28px" onclick="event.stopPropagation();deckLearning.revealed=true;deckLearning.dragX=0;deckLearning.dragY=0;renderDeckLearning()">👀 Révéler la réponse</button>`}</div></div></div>${grades}<div class="deck-learning-hint">${deckLearning.revealed?'Glisse : ← Oublié · ↓ Moyen · ↑ Correct · → Parfait':'Révèle la réponse puis glisse la carte pour noter ta maîtrise'}</div><div class="swipe-map"><span>⬅️ Oublié</span><span>⬇️ Moyen</span><span>⬆️ Correct</span><span>➡️ Parfait</span></div></div>`;
-  render(); if(window.MathJax)MathJax.typesetPromise().catch(()=>{});
+  modal=`<div class="deck-learning-overlay"><div class="deck-learning-top"><div><b>🎓 ${esc(d.name)}</b><div class="sub">Carte ${deckLearning.index+1} / ${cards.length}${deckLearning.shuffled?' · 🔀 Mélangé':''}</div></div><button class="btn gray small" type="button" onclick="closeModal()">✕</button></div><div class="progress" style="background:rgba(255,255,255,.18)"><div style="width:${cards.length?deckLearning.index/cards.length*100:0}%;background:#fff"></div></div><div class="deck-learning-card-wrap"><div class="deck-swipe-stage">${label}<div id="deckLearningCard" class="deck-learning-card ${deckLearning.dragging?'swiping':''}" style="touch-action:none;${transform}" onpointerdown="deckLearningPointerDown(event)" onpointermove="deckLearningPointerMove(event)" onpointerup="deckLearningPointerUp(event)" onpointercancel="deckLearningPointerCancel()"><div class="learning-front learning-content math center ${textSizeClass(c.frontText)}">${mathText(c.frontText)}${cardMediaHtml(c,'front')}</div>${deckLearning.revealed?`<div class="learning-back learning-content math center ${textSizeClass(c.backText)}">${mathText(c.backText)}${cardMediaHtml(c,'back')}</div>`:`<button class="btn primary full" type="button" style="margin-top:28px" onclick="event.stopPropagation();deckLearning.revealed=true;deckLearning.dragX=0;deckLearning.dragY=0;renderDeckLearning()">👀 Révéler la réponse</button>`}</div></div></div>${grades}<div class="deck-learning-hint">${deckLearning.revealed?'Glisse : ← Oublié · ↓ Moyen · ↑ Correct · → Parfait':'Révèle la réponse puis glisse la carte pour noter ta maîtrise'}</div><div class="swipe-map"><span>⬅️ Oublié</span><span>⬇️ Moyen</span><span>⬆️ Correct</span><span>➡️ Parfait</span></div></div>`;
+  render();
 }
 function deckLearningPointerDown(e){if(!deckLearning.revealed||deckLearning.settling)return;deckSwipeStart={x:e.clientX,y:e.clientY};deckLearning.dragging=true;deckLearning.dragX=0;deckLearning.dragY=0;try{e.currentTarget.setPointerCapture?.(e.pointerId)}catch{}}
 function deckLearningPointerMove(e){if(!deckLearning.dragging||!deckSwipeStart)return;deckLearning.dragX=e.clientX-deckSwipeStart.x;deckLearning.dragY=e.clientY-deckSwipeStart.y;const card=document.getElementById('deckLearningCard');if(!card)return;const dx=deckLearning.dragX,dy=deckLearning.dragY,angle=Math.max(-14,Math.min(14,dx/18));card.style.transform=`translate3d(${dx}px,${dy}px,0) rotate(${angle}deg)`;card.style.opacity=String(Math.max(.35,1-(Math.abs(dx)+Math.abs(dy))/850));const stage=card.parentElement;stage?.querySelectorAll('.deck-swipe-label').forEach(l=>l.style.opacity='0');const side=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy<0?'up':'down');const lab=stage?.querySelector('.deck-swipe-label.'+side);if(lab)lab.style.opacity=String(Math.min(1,Math.max(Math.abs(dx),Math.abs(dy))/90));}
 function deckLearningPointerUp(e){if(!deckLearning.dragging||!deckSwipeStart)return;const dx=e.clientX-deckSwipeStart.x,dy=e.clientY-deckSwipeStart.y;deckSwipeStart=null;deckLearning.dragging=false;const distance=Math.max(Math.abs(dx),Math.abs(dy));if(distance<70){deckLearning.dragX=0;deckLearning.dragY=0;deckLearning.settling=true;renderDeckLearning();setTimeout(()=>{deckLearning.settling=false},230);return}let r;if(Math.abs(dx)>Math.abs(dy))r=dx>0?'easy':'again';else r=dy<0?'good':'hard';const len=Math.hypot(dx,dy)||1;deckLearning.dragX=(dx/len)*Math.max(900,innerWidth*1.15);deckLearning.dragY=(dy/len)*Math.max(900,innerHeight*1.15);deckLearning.settling=true;renderDeckLearning();setTimeout(()=>rateDeckLearning(r),180)}
 function deckLearningPointerCancel(){deckSwipeStart=null;deckLearning.dragging=false;deckLearning.dragX=0;deckLearning.dragY=0;renderDeckLearning()}
-function rateDeckLearning(r){const d=deckById(deckLearning.did),c=d?.cards?.[deckLearning.index];if(!c)return;Object.assign(c,fsrsEvaluate(c,r));c.reps++;if(r==='again')c.lapses++;c.reviewLogs.push({date:new Date().toISOString(),rating:r});save();deckLearning.index++;deckLearning.revealed=false;deckLearning.dragX=0;deckLearning.dragY=0;deckLearning.settling=false;renderDeckLearning()}
+function rateDeckLearning(r){const c=deckLearning.cards?.[deckLearning.index];if(!c)return;Object.assign(c,fsrsEvaluate(c,r));c.reps++;if(r==='again' && Number(c.fsrsStateRaw)===2)c.lapses++;c.reviewLogs.push({date:new Date().toISOString(),rating:r,algorithm:'FSRS-6'});save();deckLearning.index++;deckLearning.revealed=false;deckLearning.dragX=0;deckLearning.dragY=0;deckLearning.settling=false;renderDeckLearning()}
 
 const TEA_SUPPLEMENT=0.20;
 async function loadShopProducts(shouldRender=true){
@@ -1341,36 +1347,78 @@ function renderChrono(){
 function setupQuiz(){const cards=deckById(quiz.did).cards,current=cards[quiz.index];const inc=cards.filter(x=>x.id!==current.id).map(x=>x.backText).sort(()=>Math.random()-.5).slice(0,3);quiz.options=[...inc,current.backText].sort(()=>Math.random()-.5);quiz.time=15;renderChrono();if(timer)clearInterval(timer);timer=setInterval(()=>{if(quiz.selected||quiz.finished)return;if(quiz.time>0){quiz.time--;renderChrono()}else{answerQuiz(encodeURIComponent("TIMEOUT_WRONG"))}},1000)}
 function answerQuiz(encoded){if(quiz.selected)return;const option=decodeURIComponent(encoded),correct=deckById(quiz.did).cards[quiz.index].backText;quiz.selected=option;if(option===correct)quiz.score++;renderChrono();setTimeout(()=>{if(quiz.index+1<deckById(quiz.did).cards.length){quiz.index++;quiz.selected=null;quiz.options=null;setupQuiz()}else{quiz.finished=true;state.score+=quiz.score*10;save();renderChrono();clearInterval(timer);timer=null}},800)}
 
-function reviewPage(){const due=getReviewCards(true).length;return `<main class="page"><h1 class="title">Révision FSRS 🧠</h1><div class="card gradient2"><b>Révision ciblée</b><p style="opacity:.9;margin-bottom:0">Choisis une matière ou un chapitre pour ne réviser que ce périmètre. Les cartes restent planifiées par FSRS.</p></div><div class="card"><div class="row between"><div><b>🎯 Révision du jour</b><div class="sub">Toutes les cartes actuellement dues</div></div><span class="badge">${due} dues</span></div><button class="btn primary full" style="margin-top:10px" onclick="startReviewTarget('all',null,false)">🚀 Réviser les cartes dues</button></div><button class="card full" style="text-align:left" onclick="openReviewScope()"><div class="row"><div class="iconbox">🎯</div><div class="grow"><b>Choisir un cours / chapitre</b><div class="sub">Maths, SI, physique, chapitre 3…</div></div>›</div></button><button class="card full" style="text-align:left" onclick="startReviewTarget('all',null,true)"><div class="row"><div class="iconbox">🔥</div><div class="grow"><b>Révision libre</b><div class="sub">Toutes les cartes, sans filtre de date</div></div>›</div></button>${review.active?`<div id="reviewArea"></div>`:''}</main>`}
-let review={free:false,index:0,revealed:false,scope:"all",scopeId:null,active:false};
+function reviewPage(){const due=getReviewCards(true).length;return `<main class="page"><h1 class="title">Révision FSRS-6 🧠</h1><div class="card gradient2"><b>Révision ciblée</b><p style="opacity:.9;margin-bottom:0">Choisis une matière ou un chapitre pour ne réviser que ce périmètre. Les cartes restent planifiées par FSRS.</p></div><div class="card"><div class="row between"><div><b>🎯 Révision du jour</b><div class="sub">Toutes les cartes actuellement dues</div></div><span class="badge">${due} dues</span></div><button class="btn primary full" style="margin-top:10px" onclick="startReviewTarget('all',null,false)">🚀 Réviser les cartes dues</button></div><button class="card full" style="text-align:left" onclick="openReviewScope()"><div class="row"><div class="iconbox">🎯</div><div class="grow"><b>Choisir un cours / chapitre</b><div class="sub">Maths, SI, physique, chapitre 3…</div></div>›</div></button><button class="card full" style="text-align:left" onclick="startReviewTarget('all',null,true)"><div class="row"><div class="iconbox">🔥</div><div class="grow"><b>Révision libre</b><div class="sub">Toutes les cartes, sans filtre de date</div></div>›</div></button>${review.active?`<div id="reviewArea"></div>`:''}</main>`}
+let review={free:false,index:0,revealed:false,scope:"all",scopeId:null,active:false,cards:[],shuffled:false};
 function getReviewBaseCards(){let cards=allCards();if(review.scope==="course"){const c=courseById(review.scopeId);cards=c?c.decks.flatMap(d=>d.cards):[]}else if(review.scope==="deck"){const d=deckById(review.scopeId);cards=d?[...d.cards]:[]}return cards}
-function getReviewCards(dueOnly=false){const cards=getReviewBaseCards();return dueOnly?cards.filter(c=>new Date(c.dueDate)<=new Date()):cards}
-function openReviewScope(){const courseHtml=state.courses.map(c=>`<button class="review-scope-item" onclick="startReviewTarget('course','${c.id}',false)"><b>📖 ${esc(c.name)}</b><div class="sub">Réviser ce cours · ${c.decks.reduce((n,d)=>n+d.cards.length,0)} cartes</div></button>${c.decks.map(d=>`<button class="review-scope-item deck" onclick="startReviewTarget('deck','${d.id}',false)"><b>📂 ${esc(d.name)}</b><div class="sub">Réviser ce chapitre · ${d.cards.length} cartes</div></button>`).join('')}`).join('');modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🎯 Choisir le périmètre</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Le bouton FSRS ne touchera qu’aux cartes du périmètre choisi.</p><div class="review-scope-grid"><button class="review-scope-item" onclick="startReviewTarget('all',null,false)"><b>🌍 Tous les cours</b><div class="sub">Cartes dues dans toute l’application</div></button>${courseHtml||'<div class="empty">Crée d’abord un cours et un paquet.</div>'}</div></div></div>`;render()}
-function startReviewTarget(scope,scopeId,free){review={free,index:0,revealed:false,scope,scopeId,active:true};const count=getReviewCards(!free).length;if(!count&&!free){review.active=false;modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🎉 Rien à réviser ici</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Aucune carte de ce périmètre n’est due pour le moment.</p><button class="btn primary full" onclick="closeModal();startReviewTarget('${scope}','${scopeId||''}',true)">🔥 Réviser quand même toutes les cartes</button></div></div>`;render();return}tab="review";modal=null;render()}
-function renderReview(){if(!review.active)return;const box=document.getElementById("reviewArea");if(!box)return;const cards=review.free?getReviewCards(false):getReviewCards(true);if(review.index>=cards.length){box.innerHTML=`<div class="card" style="text-align:center"><div style="font-size:70px">🎉</div><h2>Session terminée !</h2><p class="sub">${review.free?'Toutes les cartes du périmètre ont été parcourues.':'Les cartes dues de ce périmètre sont à jour.'}</p><button class="btn primary" onclick="review={free:false,index:0,revealed:false,scope:'all',scopeId:null,active:false};render()">↩️ Retour aux choix</button></div>`;return}const c=cards[review.index];box.innerHTML=`<div class="card"><div class="progress"><div style="width:${review.index/cards.length*100}%"></div></div><p class="sub">🎯 Carte ${review.index+1} / ${cards.length} ${review.free?'· Libre':''}</p><div class="card math center learning-content ${textSizeClass(c.frontText)}" style="min-height:120px">${mathText(c.frontText)}${cardMediaHtml(c,"front")}</div>${review.revealed?`<div class="card math center learning-content ${textSizeClass(c.backText)}" style="min-height:120px;background:#dcfce7">${mathText(c.backText)}${cardMediaHtml(c,"back")}</div><div class="grade-grid">${[['again','Oublié','red'],['hard','Moyen','orange'],['good','Correct','primary'],['easy','Parfait','green']].map(x=>`<button class="btn ${x[2]}" onclick="rateCard('${x[0]}')">${x[1]}</button>`).join('')}</div>`:`<button class="btn primary full" onclick="review.revealed=true;renderReview()">👀 Révéler la réponse</button>`}</div>`;if(window.MathJax)MathJax.typesetPromise().catch(()=>{})}
-function recallS(d,s,r,rt,w){const hp=rt===2?w[15]:1,eb=rt===4?w[16]:1;return Math.max(.1,s*(1+Math.exp(w[8])*(11-d)*Math.pow(s,-w[9])*(Math.exp((1-r)*w[10])-1)*hp*eb))}
-function forgetS(d,s,r,w){return Math.min(s,Math.max(.1,w[11]*Math.pow(d,-w[12])*(Math.pow(s+1,w[13])-1)*Math.exp((1-r)*w[14])))}
-function fsrsEvaluate(c,r){
-  const w=[.4,.6,2.4,5.8,4.93,.94,.86,.01,1.49,.14,.94,2.18,.05,.34,1.26,.29,2.61];
-  const rating={again:1,hard:2,good:3,easy:4}[r];
-  const stateRaw=Number(c.fsrsStateRaw)||0;
-  const last=c.lastReviewDate?new Date(c.lastReviewDate):null;
-  const elapsed=last&&!Number.isNaN(last.getTime())?Math.max(0,(Date.now()-last.getTime())/86400000):0;
-  const stability=Math.max(.1,Number(c.stability)||0);
-  const retr=stability>0?Math.pow(1+elapsed/(9*stability),-1):0;
-  let d=Math.min(Math.max(Number(c.difficulty)||5,1),10),s=stability,ns=stateRaw;
-  const initD=Math.min(Math.max(w[4]-(rating-3)*w[5],1),10);
-  const calcD=(cur,rt)=>Math.min(Math.max(cur-w[6]*(rt-3)+w[7]*(initD-(cur-w[6]*(rt-3))),1),10);
-  d=calcD(d,rating);
-  const initS=Math.max(.1,w[rating-1]);
-  if(stateRaw===0){s=initS;ns=rating===1?1:2}
-  else if(stateRaw===1||stateRaw===3){if(rating===1){s=initS;ns=3}else{s=recallS(d,s,retr,rating,w);ns=2}}
-  else if(rating===1){s=forgetS(d,s,retr,w);ns=3}
-  else{s=recallS(d,s,retr,rating,w);ns=2}
-  const interval=(ns===1||ns===3)?(rating===1?5/1440:15/1440):Math.max(1,s*(Math.pow(.9,-1)-1)*9);
-  return {difficulty:d,stability:s,fsrsStateRaw:ns,lastReviewDate:new Date().toISOString(),dueDate:new Date(Date.now()+interval*86400000).toISOString()};
+function getReviewCards(dueOnly=false){const cards=review.cards?.length?review.cards:getReviewBaseCards();return dueOnly?cards.filter(c=>new Date(c.dueDate)<=new Date()):cards}
+function openReviewScope(){const courseHtml=state.courses.map(c=>`<button class="review-scope-item" onclick="startReviewTarget('course','${c.id}',false,false)"><b>📖 ${esc(c.name)}</b><div class="sub">Réviser ce cours · ${c.decks.reduce((n,d)=>n+d.cards.length,0)} cartes</div></button>${c.decks.map(d=>`<button class="review-scope-item deck" onclick="startReviewTarget('deck','${d.id}',false,false)"><b>📂 ${esc(d.name)}</b><div class="sub">Réviser ce chapitre · ${d.cards.length} cartes</div></button>`).join('')}`).join('');modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🎯 Choisir le périmètre</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Les boutons FSRS utilisent le planificateur FSRS-6 et mettent à jour la prochaine échéance de chaque carte.</p><div class="review-scope-grid"><button class="review-scope-item" onclick="startReviewTarget('all',null,false,false)"><b>🌍 Tous les cours</b><div class="sub">Cartes dues dans toute l’application</div></button>${courseHtml||'<div class="empty">Crée d’abord un cours et un paquet.</div>'}</div></div></div>`;render()}
+function startReviewTarget(scope,scopeId,free,shuffle=false){
+  const base=(()=>{let cards=allCards();if(scope==="course"){const c=courseById(scopeId);cards=c?c.decks.flatMap(d=>d.cards):[]}else if(scope==="deck"){const d=deckById(scopeId);cards=d?[...d.cards]:[]}return cards})();
+  const selected=free?base:base.filter(c=>new Date(c.dueDate)<=new Date());
+  if(!selected.length&&!free){review={free:false,index:0,revealed:false,scope,scopeId,active:false,cards:[],shuffled:false};modal=`<div class="modal-back"><div class="modal"><div class="modal-head"><h2>🎉 Rien à réviser ici</h2><button class="close" onclick="closeModal()">×</button></div><p class="sub">Aucune carte de ce périmètre n’est due pour le moment.</p><div class="grid2"><button class="btn primary" onclick="closeModal();startReviewTarget('${scope}','${scopeId||''}',true,false)">🔥 Toutes les cartes</button><button class="btn secondary" onclick="closeModal();startReviewTarget('${scope}','${scopeId||''}',true,true)">🔀 Toutes + mélange</button></div></div></div>`;render();return}
+  review={free,index:0,revealed:false,scope,scopeId,active:true,cards:shuffle?shuffleCards(selected):selected,shuffled:!!shuffle};tab="review";modal=null;render();
 }
-function rateCard(r){const cards=review.free?getReviewCards(false):getReviewCards(true),c=cards[review.index];if(!c)return;const result=fsrsEvaluate(c,r);Object.assign(c,result);c.reps++;if(r==="again")c.lapses++;c.reviewLogs.push({date:new Date().toISOString(),rating:r});if(!review.free)state.score+=10;save();review.index++;review.revealed=false;render()}
+function renderReview(){if(!review.active)return;const box=document.getElementById("reviewArea");if(!box)return;const cards=review.cards||[];if(review.index>=cards.length){box.innerHTML=`<div class="card" style="text-align:center"><div style="font-size:70px">🎉</div><h2>Session terminée !</h2><p class="sub">${review.free?'Toutes les cartes du périmètre ont été parcourues.':'Toutes les cartes dues de ce périmètre sont à jour.'}${review.shuffled?' 🔀 Ordre mélangé.':''}</p><button class="btn primary" onclick="review={free:false,index:0,revealed:false,scope:'all',scopeId:null,active:false,cards:[],shuffled:false};render()">↩️ Retour aux choix</button></div>`;return}const c=cards[review.index];box.innerHTML=`<div class="card"><div class="progress"><div style="width:${cards.length?review.index/cards.length*100:0}%"></div></div><p class="sub">🎯 Carte ${review.index+1} / ${cards.length} ${review.free?'· Libre':''}${review.shuffled?' · 🔀':''} · FSRS-6</p><div class="card math center learning-content ${textSizeClass(c.frontText)}" style="min-height:120px">${mathText(c.frontText)}${cardMediaHtml(c,"front")}</div>${review.revealed?`<div class="card math center learning-content ${textSizeClass(c.backText)}" style="min-height:120px;background:#dcfce7">${mathText(c.backText)}${cardMediaHtml(c,"back")}</div><div class="grade-grid">${[['again','Oublié','red'],['hard','Moyen','orange'],['good','Correct','primary'],['easy','Parfait','green']].map(x=>`<button class="btn ${x[2]}" onclick="rateCard('${x[0]}')">${x[1]}</button>`).join('')}</div>`:`<button class="btn primary full" onclick="review.revealed=true;renderReview()">👀 Révéler la réponse</button>`}</div>`;if(window.MathJax)MathJax.typesetPromise().catch(()=>{})}
+function recallS6(d,s,r,g,w){const hard=g===2?w[15]:1,easy=g===4?w[16]:1;return Math.min(36500,Math.max(.001,s*(1+Math.exp(w[8])*(11-d)*Math.pow(s,-w[9])*(Math.exp((1-r)*w[10])-1)*hard*easy)))}
+function forgetS6(d,s,r,w){return Math.min(36500,Math.max(.001,w[11]*Math.pow(d,-w[12])*(Math.pow(s+1,w[13])-1)*Math.exp(w[14]*(1-r))))}
+function initD6(g,w){return Math.min(10,Math.max(1,w[4]-Math.exp((g-1)*w[5])+1))}
+function nextD6(d,g,w){const delta=-w[6]*(g-3),next=d+delta*(10-d)/9,initEasy=initD6(4,w);return Math.min(10,Math.max(1,w[7]*initEasy+(1-w[7])*next))}
+function shortS6(s,g,w){const sinc=Math.pow(s,-w[19])*Math.exp(w[17]*(g-3+w[18]));return Math.min(36500,Math.max(.001,s*Math.max(g>=2?1:sinc,sinc)))}
+function fsrsInterval6(s,w){const decay=-w[20],factor=Math.exp(Math.log(.9)/decay)-1;return Math.min(36500,Math.max(1,Math.round(s*((Math.pow(.9,1/decay)-1)/factor))))}
+function fsrsEvaluate(c,r){
+  // Priorité au planificateur officiel ts-fsrs (FSRS-6). Le moteur local ci-dessous
+  // reste un filet de sécurité si le CDN est temporairement indisponible.
+  if(window.__SCHUTZ_FSRS__?.scheduler){
+    const Rating=window.__SCHUTZ_FSRS__.Rating;
+    const grade={again:Rating.Again,hard:Rating.Hard,good:Rating.Good,easy:Rating.Easy}[r];
+    const now=new Date();
+    const card={
+      due:new Date(c.dueDate||now),
+      stability:Number(c.stability)||0,
+      difficulty:Number(c.difficulty)||0,
+      elapsed_days:0,
+      scheduled_days:0,
+      reps:Number(c.reps)||0,
+      lapses:Number(c.lapses)||0,
+      learning_steps:Number(c.fsrsLearningStep)||0,
+      state:Number(c.fsrsStateRaw)||0,
+      last_review:c.lastReviewDate?new Date(c.lastReviewDate):undefined
+    };
+    const result=window.__SCHUTZ_FSRS__.scheduler.next(card,now,grade);
+    const nc=result.card;
+    return {
+      difficulty:nc.difficulty,
+      stability:nc.stability,
+      fsrsStateRaw:nc.state,
+      fsrsLearningStep:nc.learning_steps,
+      lastReviewDate:nc.last_review?new Date(nc.last_review).toISOString():now.toISOString(),
+      dueDate:new Date(nc.due).toISOString(),
+      fsrsScheduledDays:nc.scheduled_days,
+      fsrsAlgorithm:'FSRS-6'
+    };
+  }
+  const w=[.212,1.2931,2.3065,8.2956,6.4133,.8334,3.0194,.001,1.8722,.1666,.796,1.4835,.0614,.2629,1.6483,.6014,1.8729,.5425,.0912,.0658,.1542];
+  const g={again:1,hard:2,good:3,easy:4}[r]; const state=Number(c.fsrsStateRaw)||0; const now=new Date();
+  const last=c.lastReviewDate?new Date(c.lastReviewDate):null; const elapsed=last&&!Number.isNaN(last.getTime())?Math.max(0,(now-last)/86400000):0;
+  let d=Number(c.difficulty)||0,s=Number(c.stability)||0,ns=state,step=Number(c.fsrsLearningStep)||0,intervalDays=0;
+  if(state===0||(!d&&!s)){
+    d=initD6(g,w);s=Math.max(.001,w[g-1]);
+    if(g===4){ns=2;intervalDays=fsrsInterval6(s,w)}
+    else {ns=1;step=g===1?0:1;intervalDays=g===1?1/1440:g===2?6/1440:10/1440}
+  }else if(state===1||state===3){
+    d=nextD6(Math.min(10,Math.max(1,d)),g,w); s=shortS6(Math.max(.001,s),g,w);
+    if(g===1){step=0;intervalDays=10/1440;ns=state}
+    else if(g===4){ns=2;step=0;intervalDays=fsrsInterval6(s,w)}
+    else if(g===3 && step>=1){ns=2;step=0;intervalDays=fsrsInterval6(s,w)}
+    else {step=Math.min(step+1,1);ns=state;intervalDays=g===2?10/1440:10/1440}
+  }else{
+    const rret=Math.pow(1+(Math.exp(Math.log(.9)/(-w[20]))-1)*elapsed/s,-w[20]);
+    if(g===1){s=forgetS6(d,s,rret,w);ns=3;step=0;intervalDays=10/1440}
+    else{s=recallS6(d,s,rret,g,w);d=nextD6(d,g,w);ns=2;step=0;intervalDays=fsrsInterval6(s,w)}
+  }
+  return {difficulty:d,stability:s,fsrsStateRaw:ns,fsrsLearningStep:step,lastReviewDate:now.toISOString(),dueDate:new Date(now.getTime()+intervalDays*86400000).toISOString(),fsrsAlgorithm:'FSRS-6'}
+}
+function rateCard(r){const c=review.cards?.[review.index];if(!c)return;Object.assign(c,fsrsEvaluate(c,r));c.reps++;if(r==="again" && Number(c.fsrsStateRaw)===3)c.lapses++;c.reviewLogs.push({date:new Date().toISOString(),rating:r,algorithm:'FSRS-6'});if(!review.free)state.score+=10;save();review.index++;review.revealed=false;render()}
 function leaderPage(){
   const f=[...remoteLeaderboard].sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0));
   const myIndex=f.findIndex(x=>String(x.pseudo||'').toLowerCase()===String(state.pseudo||'').toLowerCase());
