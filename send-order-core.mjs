@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { parseSender as parseBrevoSender, sendBrevoTemplate, getBrevoTemplateId } from './brevo-template.mjs';
 
 const TIMEOUT_MS = 12000;
 const withTimeout = (p, ms, label) => { let t; return Promise.race([Promise.resolve(p), new Promise((_, rej) => { t = setTimeout(() => rej(new Error(label + ' : délai dépassé (' + ms / 1000 + ' s)')), ms); })]).finally(() => clearTimeout(t)); };
@@ -8,28 +9,10 @@ const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 const eur = n => (Number(n) || 0).toFixed(2).replace('.', ',') + ' €';
 
 // SHOP_FROM_EMAIL peut valoir "Schutz Tea <contact@schutz-app.fr>" ou "contact@schutz-app.fr".
-function parseSender(raw) {
-  const m = String(raw || '').match(/^\s*(?:"?([^"<]*?)"?\s*)?<([^>]+)>\s*$/);
-  return m ? { name: (m[1] || '').trim() || 'Schutz Tea', email: m[2].trim() } : { name: 'Schutz Tea', email: String(raw || '').trim() };
-}
+function parseSender(raw) { return parseBrevoSender(raw); }
 
-async function sendViaBrevoApi({ apiKey, sender, to, replyTo, subject, html }) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-  try {
-    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: { accept: 'application/json', 'content-type': 'application/json', 'api-key': apiKey },
-      body: JSON.stringify({ sender, to: [{ email: to }], ...(replyTo ? { replyTo: { email: replyTo } } : {}), subject, htmlContent: html }),
-      signal: controller.signal
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(`Brevo API ${res.status}: ${data.message || data.code || 'erreur inconnue'}`);
-    return data;
-  } catch (e) {
-    if (e?.name === 'AbortError') throw new Error('Brevo API : délai dépassé');
-    throw e;
-  } finally { clearTimeout(timer); }
+async function sendViaBrevoApi({ apiKey, sender, to, replyTo, subject, params }) {
+  return sendBrevoTemplate({ apiKey, sender, to, replyTo, subject, params, templateId: getBrevoTemplateId() });
 }
 
 async function sendViaSmtp({ user, pass, sender, to, replyTo, subject, html }) {
@@ -84,14 +67,29 @@ export default async req => {
 
   const via = apiKey ? 'API Brevo' : 'SMTP Brevo';
   const send = args => withTimeout(apiKey ? sendViaBrevoApi({ apiKey, sender, ...args }) : sendViaSmtp({ user: smtpUser, pass: smtpPass, sender, ...args }), TIMEOUT_MS, via);
-  const adminHtml = `<h2>🍵 Nouvelle commande</h2><p><b>Référence :</b> ${ref} <small>(${esc(orderId)})</small></p><p><b>Client :</b> ${esc(name)}<br><b>Pseudo :</b> ${esc(pseudo || '-')}<br><b>Email :</b> ${esc(customerEmail || '(non renseigné)')}<br><b>Livraison :</b> ${esc(address)}, ${esc(city)}</p><ul>${rows}</ul><p><b>Total : ${eur(safeTotal)}</b></p>${note ? `<p><b>Note :</b> ${esc(note)}</p>` : ''}`;
-  const clientHtml = `<h2>Commande reçue ✅</h2><p>Bonjour ${esc(name)},</p><p>Nous avons bien reçu ta commande <b>#${ref}</b>.</p><p><b>Livraison :</b> ${esc(address)}, ${esc(city)}</p><ul>${rows}</ul><p><b>Total : ${eur(safeTotal)}</b></p><p>Elle est en attente de traitement. Tu recevras un e-mail à chaque changement de statut.</p><p>Merci 🍵</p>`;
-
-  // Deux envois indépendants : la panne de l'un ne bloque jamais l'autre.
+  const adminSubject = `🍵 Nouvelle commande Schutz Tea — ${name}`;
+  const clientSubject = `🍵 Confirmation de ta commande Schutz Tea — #${ref}`;
+  const adminParams = {
+    SUBJECT: adminSubject, TYPE: 'COMMANDE', TITLE: 'Nouvelle commande', REFERENCE: String(orderId).slice(0, 8),
+    INTRO: 'Une nouvelle commande vient d’être enregistrée sur Schutz App.',
+    HIGHLIGHT_LABEL: 'NOUVELLE COMMANDE', HIGHLIGHT_TITLE: `Commande #${ref}`, HIGHLIGHT: `Total de la commande : ${eur(safeTotal)}.`,
+    BODY: `Client : ${name}\nPseudo : ${pseudo || '-'}\nEmail : ${customerEmail || '(non renseigné)'}\nLivraison : ${address}, ${city}\nArticles : ${lines.map(l => `${l.name} × ${l.qty} (${eur(l.sum)})`).join(' ; ')}${note ? `\nNote : ${note}` : ''}`,
+    ACTION_LABEL: 'Ouvrir Schutz App', ACTION_URL: 'https://schutz-app.fr', SECONDARY_TITLE: 'Traitement',
+    SECONDARY: 'Cette commande est disponible dans votre espace administrateur.', CLOSING: 'Cordialement,', FOOTER_TEXT: 'Notification de commande envoyée par Schutz App.'
+  };
+  const clientParams = {
+    SUBJECT: clientSubject, TYPE: 'COMMANDE', TITLE: 'Commande reçue', REFERENCE: String(orderId).slice(0, 8),
+    INTRO: `Bonjour ${name}, nous avons bien reçu ta commande.`,
+    HIGHLIGHT_LABEL: 'COMMANDE', HIGHLIGHT_TITLE: 'Commande enregistrée', HIGHLIGHT: `Ta commande #${ref} d’un montant de ${eur(safeTotal)} a bien été enregistrée.`,
+    BODY: `Livraison : ${address}, ${city}\nArticles : ${lines.map(l => `${l.name} × ${l.qty} (${eur(l.sum)})`).join(' ; ')}\nElle est en attente de traitement. Tu recevras un e-mail à chaque changement de statut.`,
+    ACTION_LABEL: 'Accéder à Schutz App', ACTION_URL: 'https://schutz-app.fr', SECONDARY_TITLE: 'À retenir',
+    SECONDARY: 'Aucune action supplémentaire n’est nécessaire pour le moment.', CLOSING: 'Merci pour ta commande 🍵', FOOTER_TEXT: 'Notification de commande envoyée par Schutz App.'
+  };
   const [a, c] = await Promise.allSettled([
-    send({ to: owner, replyTo: customerOk ? customerEmail : undefined, subject: `🍵 Nouvelle commande Schutz Tea — ${name}`, html: adminHtml }),
-    customerOk ? send({ to: customerEmail, subject: `🍵 Confirmation de ta commande Schutz Tea — #${ref}`, html: clientHtml }) : Promise.reject(new Error('adresse e-mail client absente ou invalide'))
+    send({ to: owner, replyTo: customerOk ? customerEmail : undefined, subject: adminSubject, params: adminParams }),
+    customerOk ? send({ to: customerEmail, subject: clientSubject, params: clientParams }) : Promise.reject(new Error('adresse e-mail client absente ou invalide'))
   ]);
+
   const ownerSent = a.status === 'fulfilled', customerSent = c.status === 'fulfilled';
   const warnings = [];
   if (!ownerSent) warnings.push('E-mail admin : ' + (a.reason?.message || 'échec'));

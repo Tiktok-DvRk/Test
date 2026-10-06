@@ -1,5 +1,6 @@
 import {createClient} from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
+import { parseSender, sendBrevoTemplate, getBrevoTemplateId } from './brevo-template.mjs';
 
 function json(body,status=200){return new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}})}
 function partsFor(now,tz){
@@ -11,7 +12,7 @@ function partsFor(now,tz){
 export default async()=>{
   try{
     const sb=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY);
-    const missing=['SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','BREVO_SMTP_USER','BREVO_SMTP_PASS','SHOP_FROM_EMAIL'].filter(k=>!process.env[k]);
+    const missing=['SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','SHOP_FROM_EMAIL'].filter(k=>!process.env[k]);
     if(missing.length)return json({error:`Configuration manquante : ${missing.join(', ')}`},500);
 
     const {data:rows,error}=await sb.from('player_data').select('user_id,pseudo,data,reminder_enabled,reminder_time,reminder_timezone,reminder_last_sent').limit(1000);
@@ -34,13 +35,42 @@ export default async()=>{
       const to=emails.get(row.user_id);
       if(!to)continue;
 
-      await transporter.sendMail({
-        from:process.env.SHOP_FROM_EMAIL,
-        to,
-        subject:'📚 C’est l’heure de travailler — Schutz app',
-        text:`Salut ${row.pseudo||'Champion'} !\n\nPetit rappel : ta session de travail Schutz app t’attend. 🚀\n\nTu peux ouvrir schutz-app.fr et faire tes cartes du jour.`,
-        html:`<h2>📚 C’est l’heure de travailler !</h2><p>Salut ${row.pseudo||'Champion'} 👋</p><p>Petit rappel : ta session de travail <b>Schutz app</b> t’attend. 🚀</p><p>Ouvre schutz-app.fr et fais tes cartes du jour.</p>`
-      });
+      const subject='📚 C’est l’heure de travailler — Schutz app';
+      if(process.env.BREVO_API_KEY){
+        await sendBrevoTemplate({
+          apiKey:process.env.BREVO_API_KEY,
+          sender:parseSender(process.env.SHOP_FROM_EMAIL),
+          to,
+          subject,
+          templateId:getBrevoTemplateId(),
+          params:{
+            SUBJECT:subject,
+            TYPE:'RAPPEL',
+            TITLE:'C’est l’heure de travailler',
+            REFERENCE:key,
+            INTRO:`Salut ${row.pseudo||'Champion'} 👋`,
+            HIGHLIGHT_LABEL:'RAPPEL QUOTIDIEN',
+            HIGHLIGHT_TITLE:'Ta session t’attend',
+            HIGHLIGHT:'Un petit rappel pour garder ton rythme.',
+            BODY:'Ouvre Schutz App et fais tes cartes du jour. 🚀',
+            ACTION_LABEL:'Ouvrir Schutz App',
+            ACTION_URL:'https://schutz-app.fr',
+            SECONDARY_TITLE:'Petit rappel',
+            SECONDARY:'Quelques minutes aujourd’hui valent mieux que tout remettre à demain.',
+            CLOSING:'Bon courage 💪',
+            FOOTER_TEXT:'Rappel quotidien envoyé par Schutz App.'
+          }
+        });
+      }else{
+        if(!process.env.BREVO_SMTP_USER || !process.env.BREVO_SMTP_PASS) throw new Error('BREVO_API_KEY ou identifiants SMTP manquants.');
+        await transporter.sendMail({
+          from:process.env.SHOP_FROM_EMAIL,
+          to,
+          subject,
+          text:`Salut ${row.pseudo||'Champion'} !\n\nPetit rappel : ta session de travail Schutz app t’attend. 🚀\n\nTu peux ouvrir schutz-app.fr et faire tes cartes du jour.`,
+          html:`<h2>📚 C’est l’heure de travailler !</h2><p>Salut ${row.pseudo||'Champion'} 👋</p><p>Petit rappel : ta session de travail <b>Schutz app</b> t’attend. 🚀</p><p>Ouvre schutz-app.fr et fais tes cartes du jour.</p>`
+        });
+      }
 
       const newData={...(row.data||{}),dailyReminder:{...legacy,enabled:cfg.enabled,time:cfg.time,timezone:cfg.timezone,lastSentKey:key}};
       await sb.from('player_data').update({data:newData,reminder_last_sent:local.date,updated_at:new Date().toISOString()}).eq('user_id',row.user_id);
