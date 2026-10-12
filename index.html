@@ -387,6 +387,23 @@ body:after{content:'';position:fixed;inset:0;z-index:600;pointer-events:none;opa
   padding:0;
 }
 
+
+/* Règlement du Plateau — styles isolés, sans modifier les composants existants */
+.plateau-hero{background:linear-gradient(135deg,#172554,#4338ca 58%,#7c3aed);color:#fff;border-radius:24px;padding:24px;box-shadow:0 16px 36px rgba(49,46,129,.22);margin-bottom:18px}
+.plateau-hero .eyebrow{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;opacity:.78}
+.plateau-hero h1{font-size:clamp(26px,5vw,38px);line-height:1.08;margin:10px 0}
+.plateau-hero p{margin:0;opacity:.88;line-height:1.55}
+.plateau-article{display:flex;gap:13px;align-items:flex-start;padding:16px;margin:10px 0;border:1px solid #e5e7eb;border-radius:17px;background:rgba(255,255,255,.88);box-shadow:0 5px 16px rgba(15,23,42,.035)}
+.plateau-num{flex:0 0 38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#eef2ff;color:#4338ca;font-weight:900}
+.plateau-article h3{font-size:15px;margin:1px 0 5px}.plateau-article p{font-size:14px;line-height:1.55;color:#475569;margin:0}
+.plateau-quote{font-weight:900;color:#312e81;background:#eef2ff;border:1px dashed #818cf8;border-radius:12px;padding:13px;margin:10px 0}
+.plateau-signature{border:1px solid #e2e8f0;border-radius:18px;padding:16px;background:#fff;margin:12px 0}
+.plateau-sign-canvas{display:block;width:100%;height:150px;border:1px dashed #94a3b8;border-radius:12px;background:#fff;touch-action:none;margin:10px 0;cursor:crosshair}
+.plateau-signed{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid #e2e8f0;border-radius:13px;margin:8px 0;min-width:0}
+.plateau-signed img{width:120px;height:52px;object-fit:contain;background:#fff;border:1px solid #f1f5f9;border-radius:8px}
+.plateau-signed .plateau-member{flex:1;min-width:0;overflow-wrap:anywhere}.plateau-small{font-size:12px;color:#64748b}
+.nav{overflow-x:auto}.nav button{flex:1 0 0;min-width:0}.nav button{font-size:clamp(9px,1.8vw,12px)}.nav .ico{font-size:clamp(19px,3.5vw,27px)}
+@media(max-width:520px){.nav button{padding-left:0;padding-right:0;gap:4px}.plateau-hero{padding:20px}.plateau-article{padding:13px}}
 </style>
 </head>
 <body data-version="V20-FSRS-EXAM-ROUNDS">
@@ -1032,7 +1049,7 @@ function render(){
  if(resetMode){r.innerHTML=resetPage();return}
  if(!authUser){r.innerHTML=authPage();return}
  if(!state.pseudo){r.innerHTML=authPage();return}
- let content=tab==="home"?home():tab==="courses"?coursesPage():tab==="review"?reviewPage():tab==="leader"?leaderPage():tab==="shop"?shopPage():profilePage();
+ let content=tab==="home"?home():tab==="courses"?coursesPage():tab==="review"?reviewPage():tab==="leader"?leaderPage():tab==="shop"?shopPage():tab==="rules"?plateauRulesPage():profilePage();
  r.innerHTML=`<div class="app"><div class="brandbar"><img class="brand-logo" src="assets/schutz-app-logo.jpeg" alt="Schutz-App" onerror="this.onerror=null;this.src=window.SCHUTZ_LOGO_FALLBACK"><div class="brand-copy"><b>Schutz-App</b><span>Prépa · Flashcards · Boutique</span></div><span class="brand-live">En ligne</span></div>${content}<div class="footer-social">
   <div>Créé par Gwendal Schutz ⚡️</div>
   <a href="https://www.instagram.com/gwendal_schutz/" target="_blank" rel="noopener noreferrer">📸 @gwendal_schutz</a><br><a href="https://www.tiktok.com/@tkdvrk" target="_blank" rel="noopener noreferrer">🎵 @tkdvrk</a>
@@ -1044,6 +1061,7 @@ function render(){
  <button class="${tab==="review"?"active":""}" onclick="setTab('review')"><span class="ico">🧠</span>Révision</button>
  <button class="${tab==="leader"?"active":""}" onclick="setTab('leader')"><span class="ico">🏆</span>Classement</button>
  <button class="${tab==="shop"?"active":""}" onclick="setTab('shop')"><span class="ico">🍵</span>Boutique</button>
+ <button class="${tab==="rules"?"active":""}" onclick="setTab('rules')"><span class="ico">📜</span>Plateau</button>
  <button class="${tab==="profile"?"active":""}" onclick="setTab('profile')"><span class="ico">⚙️</span>Profil</button>
  </nav>${modal||""}${toastMsg?toast():""}</div>`;
  const pageEl=r.querySelector('.page');
@@ -1052,9 +1070,39 @@ function render(){
  if(window.MathJax) MathJax.typesetPromise().catch(()=>{});
  setTimeout(renderPendingQRCode,0);
  if(tab==="review") renderReview();
+ if(tab==="rules") setTimeout(initPlateauSignatureCanvas,0);
  restoreBoxes();syncModalLock();setupFx();
 }
 function toast(){return `<div class="toast">${esc(toastMsg)}</div>`}
+
+const PLATEAU_SIGNATURES_KEY="schutzPlateauSignaturesV1";
+function getPlateauSignatures(){try{const v=JSON.parse(localStorage.getItem(PLATEAU_SIGNATURES_KEY)||"[]");return Array.isArray(v)?v:[]}catch{return []}}
+function plateauRulesPage(){
+ const signatures=getPlateauSignatures();
+ return `<main class="page">
+ <div class="plateau-hero"><div class="eyebrow">Code de vie · Édition officielle</div><h1>📜 Règlement du Plateau</h1><p>Les règles de la table. Elles s’appliquent à chaque membre, dans le respect des procédures ci-dessous.</p></div>
+ <div class="card" style="padding:16px;margin-bottom:14px"><b>⚖️ Préambule</b><p class="sub" style="line-height:1.6;margin-bottom:0">Chaque membre est tenu de connaître et de respecter le présent règlement. La signature au bas de cette page vaut engagement à en respecter les articles.</p></div>
+ <div class="plateau-article"><div class="plateau-num">01</div><div><h3>Réunion complète</h3><p>Avant de prononcer la phrase officielle, il faut attendre que tout le monde soit assis. Exception : une absence constatée ne bloque pas indéfiniment le déclenchement de la procédure.</p></div></div>
+ <div class="plateau-article"><div class="plateau-num">02</div><div><h3>Phrase officielle</h3><p>La formule exacte à prononcer est :</p><div class="plateau-quote">« Oh les gars, j'ai grave soif. »</div><p>Un bluff ou une feinte est autorisé tant que les mots exacts de la formule ne sont pas prononcés.</p></div></div>
+ <div class="plateau-article"><div class="plateau-num">03</div><div><h3>Dernier plateau levé</h3><p>La personne qui est la dernière à lever son plateau doit aller chercher de l’eau. Le plateau est considéré comme levé dès qu’il ne touche plus la table.</p></div></div>
+ <div class="plateau-article"><div class="plateau-num">04</div><div><h3>Clause des « renue de mortier de verre »</h3><p>Si la formule officielle est prononcée alors qu’il reste plus d’une « renue de mortier de verre », la personne qui a prononcé la formule doit aller chercher l’eau.</p></div></div>
+ <div class="plateau-article"><div class="plateau-num">05</div><div><h3>Récipient obligatoire</h3><p>Seule une grande cruche de la cantine est acceptée. Aucun autre récipient ne satisfait à la règle.</p></div></div>
+ <div class="plateau-article"><div class="plateau-num">06</div><div><h3>Délai d’exécution</h3><p>La personne désignée doit se mettre en route immédiatement et dispose d’un délai maximal de deux minutes pour partir chercher l’eau.</p></div></div>
+ <div class="plateau-article"><div class="plateau-num">07</div><div><h3>Dérogation au délai</h3><p>Un délai supplémentaire ne peut être accordé qu’avec l’accord unanime de tous les membres présents à la table.</p></div></div>
+ <div class="plateau-article"><div class="plateau-num">08</div><div><h3>Refus et discipline</h3><p>Tout refus d’exécuter la règle entraîne un bannissement temporaire de la table, suivi de la réunion d’un conseil disciplinaire de table.</p></div></div>
+ <div class="card" style="padding:16px;margin:18px 0"><b>✍️ Registre des signatures</b><p class="sub" style="line-height:1.55">Chaque membre doit signer le règlement. Dessine ta signature dans la zone ci-dessous, puis enregistre-la avec ton nom.</p>
+ <label for="plateauMemberName" style="display:block;font-weight:700;margin-top:12px">Nom / surnom du membre</label><input id="plateauMemberName" maxlength="80" placeholder="Ex. : Gwendal" autocomplete="name" style="margin-top:7px;width:100%;box-sizing:border-box">
+ <canvas id="plateauSignatureCanvas" class="plateau-sign-canvas" aria-label="Zone pour dessiner sa signature"></canvas>
+ <div class="grid2"><button class="btn gray" onclick="clearPlateauSignature()">Effacer la signature</button><button class="btn primary" onclick="savePlateauSignature()">Signer le règlement ✓</button></div>
+ <div class="plateau-small" style="margin-top:10px">Les signatures sont enregistrées dans le stockage local de ce navigateur sur cet appareil. Elles ne sont pas envoyées sur Supabase et ne se synchronisent pas automatiquement entre appareils.</div></div>
+ <div class="card" style="padding:16px"><div class="row" style="align-items:center;justify-content:space-between"><b>Signatures enregistrées</b><span class="badge" style="background:#eef2ff;color:#4338ca;padding:5px 9px;border-radius:999px">${signatures.length}</span></div>
+ ${signatures.map((x,i)=>`<div class="plateau-signed"><img src="${x.image}" alt="Signature de ${esc(x.name)}"><div class="plateau-member"><b>${esc(x.name)}</b><div class="plateau-small">Signé le ${new Date(x.date).toLocaleDateString('fr-FR')} à ${new Date(x.date).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div></div><button class="btn gray small" onclick="removePlateauSignature(${i})" aria-label="Supprimer la signature de ${esc(x.name)}">✕</button></div>`).join('')||'<p class="sub" style="margin-bottom:0">Aucune signature enregistrée pour le moment.</p>'}
+ </div></main>`;
+}
+function initPlateauSignatureCanvas(){const c=document.getElementById('plateauSignatureCanvas');if(!c)return;const rect=c.getBoundingClientRect(),ratio=Math.max(1,window.devicePixelRatio||1);c.width=Math.max(1,Math.round(rect.width*ratio));c.height=Math.max(1,Math.round(rect.height*ratio));const ctx=c.getContext('2d');ctx.scale(ratio,ratio);ctx.lineWidth=2.4;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#172554';let drawing=false,ink=false;const pos=e=>{const r=c.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}};c.onpointerdown=e=>{drawing=true;ink=true;c.setPointerCapture?.(e.pointerId);const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)};c.onpointermove=e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke()};const stop=()=>{drawing=false};c.onpointerup=stop;c.onpointercancel=stop;c.onpointerleave=()=>{drawing=false};c.dataset.ink='0';c.addEventListener('pointerdown',()=>{c.dataset.ink='1'},{once:true});c.dataset.ready='1';}
+function clearPlateauSignature(){const c=document.getElementById('plateauSignatureCanvas');if(!c)return;const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);c.dataset.ink='0';c.dataset.ready='1';initPlateauSignatureCanvas()}
+function savePlateauSignature(){const name=document.getElementById('plateauMemberName')?.value.trim(),c=document.getElementById('plateauSignatureCanvas');if(!name){showToast('Indique le nom du membre.');return}if(!c||c.dataset.ink!=='1'){showToast('Dessine ta signature avant de valider.');return}const list=getPlateauSignatures();const existing=list.findIndex(x=>x.name.toLocaleLowerCase('fr')===name.toLocaleLowerCase('fr'));const entry={name,image:c.toDataURL('image/png'),date:new Date().toISOString()};if(existing>=0){if(!confirm('Ce membre a déjà signé. Remplacer sa signature ?'))return;list[existing]=entry}else list.push(entry);localStorage.setItem(PLATEAU_SIGNATURES_KEY,JSON.stringify(list));showToast('Signature enregistrée sur cet appareil ✓');render()}
+function removePlateauSignature(i){const list=getPlateauSignatures();if(!list[i])return;if(!confirm('Supprimer cette signature ?'))return;list.splice(i,1);localStorage.setItem(PLATEAU_SIGNATURES_KEY,JSON.stringify(list));render()}
 
 function home(){
  const cards=allCards(), due=cards.filter(c=>new Date(c.dueDate)<=new Date()).length;
