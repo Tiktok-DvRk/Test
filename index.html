@@ -1070,13 +1070,28 @@ function render(){
  if(window.MathJax) MathJax.typesetPromise().catch(()=>{});
  setTimeout(renderPendingQRCode,0);
  if(tab==="review") renderReview();
- if(tab==="rules") setTimeout(initPlateauSignatureCanvas,0);
+ if(tab==="rules"){setTimeout(initPlateauSignatureCanvas,0);if(!Array.isArray(plateauRemoteSignatures)&&!plateauSignaturesLoading)setTimeout(loadPlateauSignatures,0);}
  restoreBoxes();syncModalLock();setupFx();
 }
 function toast(){return `<div class="toast">${esc(toastMsg)}</div>`}
 
 const PLATEAU_SIGNATURES_KEY="schutzPlateauSignaturesV1";
-function getPlateauSignatures(){try{const v=JSON.parse(localStorage.getItem(PLATEAU_SIGNATURES_KEY)||"[]");return Array.isArray(v)?v:[]}catch{return []}}
+let plateauRemoteSignatures=null;
+let plateauSignaturesLoading=false;
+function getPlateauSignatures(){if(Array.isArray(plateauRemoteSignatures))return plateauRemoteSignatures;try{const v=JSON.parse(localStorage.getItem(PLATEAU_SIGNATURES_KEY)||"[]");return Array.isArray(v)?v:[]}catch{return []}}
+async function loadPlateauSignatures(){
+ if(!supabaseClient){showToast('Supabase non configuré : signatures non synchronisées.');return}
+ if(plateauSignaturesLoading)return;
+ plateauSignaturesLoading=true;
+ try{
+  const {data,error}=await supabaseClient.from('plateau_signatures').select('id,member_name,signature_data,signed_at,rule_version').order('signed_at',{ascending:true});
+  if(error)throw error;
+  plateauRemoteSignatures=(Array.isArray(data)?data:[]).map(x=>({id:x.id,name:x.member_name,image:x.signature_data,date:x.signed_at,ruleVersion:x.rule_version}));
+  localStorage.setItem(PLATEAU_SIGNATURES_KEY,JSON.stringify(plateauRemoteSignatures));
+  if(tab==='rules')render();
+ }catch(e){console.error('Chargement signatures Plateau:',e);showToast('Impossible de charger les signatures Supabase : '+(e?.message||'erreur'));}
+ finally{plateauSignaturesLoading=false}
+}
 function plateauRulesPage(){
  const signatures=getPlateauSignatures();
  return `<main class="page">
@@ -1098,15 +1113,32 @@ function plateauRulesPage(){
  <label for="plateauMemberName" style="display:block;font-weight:700;margin-top:12px">Nom / surnom du membre</label><input id="plateauMemberName" maxlength="80" placeholder="Ex. : Gwendal" autocomplete="name" style="margin-top:7px;width:100%;box-sizing:border-box">
  <canvas id="plateauSignatureCanvas" class="plateau-sign-canvas" aria-label="Zone pour dessiner sa signature"></canvas>
  <div class="grid2"><button class="btn gray" onclick="clearPlateauSignature()">Effacer la signature</button><button class="btn primary" onclick="savePlateauSignature()">Signer le règlement ✓</button></div>
- <div class="plateau-small" style="margin-top:10px">Les signatures sont enregistrées dans le stockage local de ce navigateur sur cet appareil. Elles ne sont pas envoyées sur Supabase et ne se synchronisent pas automatiquement entre appareils.</div></div>
+ <div class="plateau-small" style="margin-top:10px">Les signatures sont synchronisées avec Supabase pour être visibles sur les appareils qui utilisent ce projet. Attends la confirmation avant de quitter la page.</div></div>
  <div class="card" style="padding:16px"><div class="row" style="align-items:center;justify-content:space-between"><b>Signatures enregistrées</b><span class="badge" style="background:#eef2ff;color:#4338ca;padding:5px 9px;border-radius:999px">${signatures.length}</span></div>
  ${signatures.map((x,i)=>`<div class="plateau-signed"><img src="${x.image}" alt="Signature de ${esc(x.name)}"><div class="plateau-member"><b>${esc(x.name)}</b><div class="plateau-small">Signé le ${new Date(x.date).toLocaleDateString('fr-FR')} à ${new Date(x.date).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div></div><button class="btn gray small" onclick="removePlateauSignature(${i})" aria-label="Supprimer la signature de ${esc(x.name)}">✕</button></div>`).join('')||'<p class="sub" style="margin-bottom:0">Aucune signature enregistrée pour le moment.</p>'}
  </div></main>`;
 }
 function initPlateauSignatureCanvas(){const c=document.getElementById('plateauSignatureCanvas');if(!c)return;const rect=c.getBoundingClientRect(),ratio=Math.max(1,window.devicePixelRatio||1);c.width=Math.max(1,Math.round(rect.width*ratio));c.height=Math.max(1,Math.round(rect.height*ratio));const ctx=c.getContext('2d');ctx.scale(ratio,ratio);ctx.lineWidth=2.4;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#172554';let drawing=false,ink=false;const pos=e=>{const r=c.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}};c.onpointerdown=e=>{drawing=true;ink=true;c.setPointerCapture?.(e.pointerId);const p=pos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)};c.onpointermove=e=>{if(!drawing)return;const p=pos(e);ctx.lineTo(p.x,p.y);ctx.stroke()};const stop=()=>{drawing=false};c.onpointerup=stop;c.onpointercancel=stop;c.onpointerleave=()=>{drawing=false};c.dataset.ink='0';c.addEventListener('pointerdown',()=>{c.dataset.ink='1'},{once:true});c.dataset.ready='1';}
 function clearPlateauSignature(){const c=document.getElementById('plateauSignatureCanvas');if(!c)return;const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);c.dataset.ink='0';c.dataset.ready='1';initPlateauSignatureCanvas()}
-function savePlateauSignature(){const name=document.getElementById('plateauMemberName')?.value.trim(),c=document.getElementById('plateauSignatureCanvas');if(!name){showToast('Indique le nom du membre.');return}if(!c||c.dataset.ink!=='1'){showToast('Dessine ta signature avant de valider.');return}const list=getPlateauSignatures();const existing=list.findIndex(x=>x.name.toLocaleLowerCase('fr')===name.toLocaleLowerCase('fr'));const entry={name,image:c.toDataURL('image/png'),date:new Date().toISOString()};if(existing>=0){if(!confirm('Ce membre a déjà signé. Remplacer sa signature ?'))return;list[existing]=entry}else list.push(entry);localStorage.setItem(PLATEAU_SIGNATURES_KEY,JSON.stringify(list));showToast('Signature enregistrée sur cet appareil ✓');render()}
-function removePlateauSignature(i){const list=getPlateauSignatures();if(!list[i])return;if(!confirm('Supprimer cette signature ?'))return;list.splice(i,1);localStorage.setItem(PLATEAU_SIGNATURES_KEY,JSON.stringify(list));render()}
+async function savePlateauSignature(){
+ const name=document.getElementById('plateauMemberName')?.value.trim(),c=document.getElementById('plateauSignatureCanvas');
+ if(!name){showToast('Indique le nom du membre.');return}
+ if(!c||c.dataset.ink!=='1'){showToast('Dessine ta signature avant de valider.');return}
+ if(!supabaseClient){showToast('Supabase non configuré : impossible de synchroniser.');return}
+ const image=c.toDataURL('image/png');
+ const list=getPlateauSignatures();
+ const existing=list.find(x=>x.name.toLocaleLowerCase('fr')===name.toLocaleLowerCase('fr'));
+ if(existing&&!confirm('Ce membre a déjà signé. Ajouter une nouvelle signature pour ce nom ?'))return;
+ try{
+  const {data,error}=await supabaseClient.from('plateau_signatures').insert({member_name:name,signature_data:image,rule_version:1}).select('id,member_name,signature_data,signed_at,rule_version').single();
+  if(error)throw error;
+  const entry={id:data.id,name:data.member_name,image:data.signature_data,date:data.signed_at,ruleVersion:data.rule_version};
+  plateauRemoteSignatures=[...(Array.isArray(plateauRemoteSignatures)?plateauRemoteSignatures:list),entry];
+  localStorage.setItem(PLATEAU_SIGNATURES_KEY,JSON.stringify(plateauRemoteSignatures));
+  showToast('Signature enregistrée dans Supabase ✓');render();
+ }catch(e){console.error('Enregistrement signature Plateau:',e);showToast('Échec de la sauvegarde : '+(e?.message||'vérifie les droits SQL'));}
+}
+function removePlateauSignature(i){showToast('La suppression des signatures est désactivée pour protéger le registre.');}
 
 function home(){
  const cards=allCards(), due=cards.filter(c=>new Date(c.dueDate)<=new Date()).length;
